@@ -61,6 +61,11 @@ public class Subject {
 	@Size(min = 1, max = 255)
 	private String skupina;
 
+	@NotNull
+	@Size(min = 1, max = 255)
+	private String opomba;
+
+	
 	public String getSifra() {
 		return sifra;
 	}
@@ -147,6 +152,14 @@ public class Subject {
 
 	public void setSkupina(String skupina) {
 		this.skupina = skupina;
+	}
+
+	public String getOpomba() {
+		return opomba;
+	}
+
+	public void setOpomba(String opomba) {
+		this.opomba = opomba;
 	}
 
 	

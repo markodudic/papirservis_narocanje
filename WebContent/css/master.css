@@ -210,11 +210,12 @@ fieldset input {
 	border: 0px;
 }
 
-#searchtable #td_search #i_text, #kolicina, #opomba {
+
+#searchtable #td_search #naslov, #kraj, #kontakt, #telefon, #kupec, #kolicina, #osnovno, #opomba {
 	width: 400px;
 }
 
-#selectStranka, #selectOdpadek, #selectNarocil, #selectOsnovno {
+#selectStranka, #selectOdpadek, #selectNarocil {
 	width: 400px;	
 }
 

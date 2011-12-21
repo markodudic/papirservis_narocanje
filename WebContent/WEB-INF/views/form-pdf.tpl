@@ -18,11 +18,11 @@ font-size: small;
 <div id="hd">
 <div id="logo">
 	<a href="#" title="EKOL">
-		<img src="${contextUrl}/img/ekol.gif" width="547" height="69" alt="logo"/>
+		<img src="${contextUrl}/img/ps.jpg" width="153" height="69" alt="logo"/>
 	</a>
 </div>
 <div id="form_container">
-<h5>${formTitle}</h5>
+<h1>${formTitle}</h1>
 ${formHtml}
 </div>
 </div>

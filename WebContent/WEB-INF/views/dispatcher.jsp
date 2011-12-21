@@ -45,27 +45,27 @@ if (login == null || !login.equals("0")) {
 		<div id="table-wrapper">
 			<table id="searchtable">
 				<tr id="tr_search">
-					<td id="td_search"><label id="l_stranka"></label></td><td id="td_search"><select id="selectStranka" onchange="changeSubject()"></select></td>
+					<td id="td_search"><label id="l_stranka"></label></td><td id="td_search"><select id="selectStranka" onchange="changeSubject()" ></select></td>
 					<td id="td_search"><label id="l_datum"></label></td><td id="td_search"><input type="text" id="datum" value="" class="chooser-date"  /></td>
 				</tr>
 				<tr id="tr_search">
-					<td id="td_search"><label id="l_naslov"></label></td><td id="td_search"><input type="text" id="i_text" value="" /></td>
+					<td id="td_search"><label id="l_naslov"></label></td><td id="td_search"><input type="text" id="naslov" value="" readonly/></td>
 					<td id="td_search"><label id="l_odpadek"></label></td><td id="td_search"><select id="selectOdpadek" ></select></td>
 				</tr>
 				<tr id="tr_search">
-					<td id="td_search"><label id="l_kraj"></label></td><td id="td_search"><input type="text" id="i_text" value="" /></td>
+					<td id="td_search"><label id="l_kraj"></label></td><td id="td_search"><input type="text" id="kraj" value="" readonly /></td>
 					<td id="td_search"><label id="l_kolicina"></label></td><td id="td_search"><input type="text" id="kolicina" value="" /></td>
 				</tr>
 				<tr id="tr_search">
-					<td id="td_search"><label id="l_kontakt"></label></td><td id="td_search"><input type="text" id="i_text" value="" /></td>
-					<td id="td_search"><label id="l_osnovno"></label></td><td id="td_search"><select id="selectOsnovno" ></select></td>
+					<td id="td_search"><label id="l_kontakt"></label></td><td id="td_search"><input type="text" id="kontakt" value="" readonly /></td>
+					<td id="td_search"><label id="l_osnovno"></label></td><td id="td_search"><input type="text" id="osnovno" value="" readonly /></select></td>
 				</tr>
 				<tr id="tr_search">
-					<td id="td_search"><label id="l_telefon"></label></td><td id="td_search"><input type="text" id="i_text" value="" /></td>
+					<td id="td_search"><label id="l_telefon"></label></td><td id="td_search"><input type="text" id="telefon" value="" readonly /></td>
 					<td id="td_search"><label id="l_opomba"></label></td><td id="td_search"><input type="text" id="opomba" value="" /></td>
 				</tr>
 				<tr id="tr_search">
-					<td id="td_search"><label id="l_kupec"></label></td><td id="td_search"><input type="text" id="i_text" value="" /></td>
+					<td id="td_search"><label id="l_kupec"></label></td><td id="td_search"><input type="text" id="kupec" value="" readonly /></td>
 					<td id="td_search"><label id="l_narocil"></label></td><td id="td_search"><select id="selectNarocil" ></select></td>
 				</tr>
 			</table>

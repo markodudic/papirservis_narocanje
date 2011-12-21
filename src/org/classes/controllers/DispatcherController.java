@@ -20,6 +20,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.classes.login.Scrambler;
 import org.classes.objects.Document;
+import org.classes.objects.Material;
 import org.classes.objects.Subject;
 import org.classes.objects.User;
 import org.classes.report.PdfCreator;
@@ -279,23 +280,6 @@ public class DispatcherController {
 		return null;
 	}	
 	
-	@RequestMapping(value="/vehicles", method=RequestMethod.GET)
-	public ModelAndView vehicles(HttpServletResponse response) throws Exception {
-		log.debug("**** vehicles");
-		setChacheHeaders(response);
-		
-		List subjects = (List) dispatcherStoredProcedure.GetVehicles(null, null, null, 0);
-		
-		JSONArray dataArray = new JSONArray();
-		for (int i=0; i<subjects.size(); i++) {
-			Subject subject = (Subject) subjects.get(i);
-			dataArray.add(i, subjectsJSON(subject));
-		}
-		//log.debug("*** POST /JSONArray:" + dataArray.toString());
-		
-		return ajaxResult(dataArray.toString(),null);
-	}	
-	
 	public JSONObject subjectsJSON(Subject subject) {
 		JSONObject data = new JSONObject();
 		data.put("sifra", subject.getSifra());
@@ -309,6 +293,81 @@ public class DispatcherController {
 		data.put("posta", subject.getPosta());
 		data.put("skupina", subject.getSkupina());
 		data.put("telefon", subject.getTelefon());
+		data.put("opomba", subject.getOpomba());
+        
+        return data;
+	}
+
+	
+	@RequestMapping(value="/materials", method=RequestMethod.GET)
+	public ModelAndView materials(HttpServletRequest request, HttpServletResponse response) throws Exception {
+		log.debug("**** materials");
+		setChacheHeaders(response);
+		
+		List materials = (List) dispatcherStoredProcedure.GetMaterials();
+		
+		JSONArray dataArray = new JSONArray();
+		for (int i=0; i<materials.size(); i++) {
+			Material material = (Material) materials.get(i);
+			dataArray.add(i, materialsJSON(material));
+		}
+		log.debug("*** POST /JSONArray:" + dataArray.toString());
+		
+		OutputStreamWriter osw = null;
+		String acceptEncoding = request.getHeader("Accept-Encoding");
+		if (acceptEncoding != null && acceptEncoding.indexOf("gzip") >= 0) {
+			response.setHeader("Content-Encoding", "gzip");
+			osw = new OutputStreamWriter(new GZIPOutputStream(response.getOutputStream()), "utf-8");
+		}
+		osw.write(dataArray.toString());
+		osw.flush();
+		osw.close();
+		
+		//return ajaxResult(dataArray.toString(),null);
+		return null;
+	}	
+	
+	public JSONObject materialsJSON(Material material) {
+		JSONObject data = new JSONObject();
+		data.put("koda", material.getKoda());
+		data.put("material", material.getMaterial());
+         
+        return data;
+	}
+
+	
+	@RequestMapping(value="/users", method=RequestMethod.GET)
+	public ModelAndView users(HttpServletRequest request, HttpServletResponse response) throws Exception {
+		log.debug("**** users");
+		setChacheHeaders(response);
+		
+		List users = (List) dispatcherStoredProcedure.GetUsers();
+		
+		JSONArray dataArray = new JSONArray();
+		for (int i=0; i<users.size(); i++) {
+			User user = (User) users.get(i);
+			dataArray.add(i, usersJSON(user));
+		}
+		log.debug("*** POST /JSONArray:" + dataArray.toString());
+		
+		OutputStreamWriter osw = null;
+		String acceptEncoding = request.getHeader("Accept-Encoding");
+		if (acceptEncoding != null && acceptEncoding.indexOf("gzip") >= 0) {
+			response.setHeader("Content-Encoding", "gzip");
+			osw = new OutputStreamWriter(new GZIPOutputStream(response.getOutputStream()), "utf-8");
+		}
+		osw.write(dataArray.toString());
+		osw.flush();
+		osw.close();
+		
+		//return ajaxResult(dataArray.toString(),null);
+		return null;
+	}	
+	
+	public JSONObject usersJSON(User user) {
+		JSONObject data = new JSONObject();
+		data.put("id", user.getId());
+		data.put("name", user.getName());
         
         return data;
 	}
@@ -363,7 +422,7 @@ public class DispatcherController {
 		session.setAttribute("status", 1);
 		return null;
 	}
-	@RequestMapping(value="/confirm", method=RequestMethod.POST)
+	@RequestMapping(value="/confirm", method=RequestMethod.GET)
 	public RedirectView confirm(@RequestParam String confirmData, 
 								HttpServletRequest request,
 								HttpServletResponse response) throws Exception {
@@ -371,16 +430,7 @@ public class DispatcherController {
 		setChacheHeaders(response);
 		
 		JSONObject jdata = (JSONObject)new JSONParser().parse(new StringReader(confirmData));
-		for (Iterator iterator = jdata.keySet().iterator(); iterator.hasNext(); ) {
-			Object key = iterator.next();
-			Object val = jdata.get(key);
-			int state = 0;
-			
-			if (val.toString().equals("-1")) {
-				state = 2;
-			}
-			
-		}
+		dispatcherStoredProcedure.AddOrder(jdata);
 		
 		RedirectView rv = new RedirectView();
 		rv.setUrl(contextPath+"/dispatcher");
@@ -395,8 +445,8 @@ public class DispatcherController {
 			HttpServletRequest request,
 			HttpServletResponse response
 		) {
-		log.debug("**** Pdf/");
 		String realPath = request.getSession().getServletContext().getRealPath("/").replaceAll("\\\\", "/");
+		log.debug("**** Pdf:"+title+"-"+html);
 		PdfCreator.createPdf(html,title,realPath,request,response);
 	}
 	
