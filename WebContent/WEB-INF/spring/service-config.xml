@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<beans 
+	xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:cxf="http://cxf.apache.org/core" 
+	xmlns:jaxws="http://cxf.apache.org/jaxws"
+	xmlns:simple="http://cxf.apache.org/simple"
+	xmlns:p="http://www.springframework.org/schema/p"
+    xmlns:aop="http://www.springframework.org/schema/aop"
+    xmlns:tx="http://www.springframework.org/schema/tx"
+	xsi:schemaLocation="
+	http://www.springframework.org/schema/beans    			http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+	http://www.springframework.org/schema/context  			http://www.springframework.org/schema/context/spring-context-3.0.xsd
+    http://www.springframework.org/schema/tx 				http://www.springframework.org/schema/tx/spring-tx-2.0.xsd
+    http://www.springframework.org/schema/aop				http://www.springframework.org/schema/aop/spring-aop-2.0.xsd
+ 	http://cxf.apache.org/core                     			http://cxf.apache.org/schemas/core.xsd
+	http://cxf.apache.org/jaxws                    			http://cxf.apache.org/schemas/jaxws.xsd
+	http://cxf.apache.org/bindings/soap 		   			http://cxf.apache.org/schemas/configuration/soap.xsd
+	http://cxf.apache.org/transports/http/configuration 	http://cxf.apache.org/schemas/configuration/http-conf.xsd
+	http://cxf.apache.org/simple                   			http://cxf.apache.org/schemas/simple.xsd"
+	default-autowire="byName">
+
+	
+    <tx:annotation-driven/>
+    <context:annotation-config/>
+
+  	<!-- ========================= DATA SOURCE ========================= -->  
+	<bean id="dataSource" class="org.springframework.jdbc.datasource.DriverManagerDataSource">
+		<property name="driverClassName"><value>org.gjt.mm.mysql.Driver</value></property>
+		<property name="url"><value>jdbc:mysql://192.168.9.82:3306/papirservis</value></property>
+		<property name="username"><value>papirservis</value></property>
+		<property name="password"><value>papirservis</value></property>
+	</bean>       
+		<!-- ========================= DATA SOURCE ========================= -->
+
+
+	<!-- ========================= TRANSACTION MANAGER ========================= -->
+	<bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+	  <property name="dataSource" ref="dataSource"/>
+	</bean>
+	<!-- ========================= TRANSACTION MANAGER ========================= -->
+
+	<!-- database.dao.implementations.DispatcherStoredProcedureDaoImpl initialization -->
+	<bean
+		class="database.dao.implementations.DispatcherStoredProcedureDaoImpl" id="customPageStoredProcedureDao" depends-on="dataSource">
+		<property name="dataSource" ref="dataSource" />
+	</bean>
+
+
+	<!-- org.classes.controllers.DispatcherController initialization -->
+	<bean
+		class="org.classes.controllers.DispatcherController" id="customPageController" init-method="initialize">
+		<property name="contextPath" value="/narocanje"/>
+		<property name="documentType" value="Ekol_881_1"/>
+		<property name="receiver" value="HySrv_RAZVOJ"/>
+		<property name="sender" value="HydraEkolDispatcher_DEV"/>
+		<property name="jobID" value="Job_Sync_OnDemandSyncExecute"/>
+		<property name="refreshItems" value="SyncStrategy_WebService_XML_ItemsGet_SpecialEkolVasco_v1"/>
+		<property name="refreshSubjects" value="SyncStrategy_WebService_XML_SubjectsGet_SpecialEkolVasco_v1"/>
+		<property name="refreshAllDocuments" value="SyncStrategy_WebService_XML_DocumentsGet_SpecialEkolVasco_v1"/>
+		<property name="refreshDocument" value="SyncStrategy_WebService_XML_SpecificDocumentGet_SpecialEkolVasco_v1"/>
+	</bean>
+
+	
+	
+</beans>
