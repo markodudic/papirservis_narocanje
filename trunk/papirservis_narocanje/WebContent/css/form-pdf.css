@@ -1,0 +1,13 @@
+html { background-color: #ffffff; } 
+html body {text-align: left;}
+.input-p { background-color: #fff; background-image: url(../img/fadeTop.gif); background-position: top; background-repeat:repeat-x; border: 1px solid #bbb;}
+.input-p  { margin:0px 2px 2px 0px; padding: 4px; }
+.input-p  { color: #444; font-size: 53%; font-weight: normal;  }
+#hd #logo a {text-decoration: none;}
+#efsa-form .form-row {padding:0px;margin-top:0px;}
+#barcode_div { float:left;left:530px; }
+.barcode_sub { font-size:x-small;text-align:center; }
+#h5 { margin:10px 0px; }
+#form_container { margin:0.3cm 0.2cm 0.3cm 1.3cm; font-size: 53%; }
+#logo { margin-left:1.2cm; } 
+@page {  margin: 0.8cm 0cm; }
