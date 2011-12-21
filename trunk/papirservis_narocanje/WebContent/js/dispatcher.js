@@ -1,15 +1,8 @@
 var subjectOption = '';
-var vehicleOption = '';
-var documents = '';
-var stateOption = ['UA', 'AC', 'A', 'F'];
-var stateOptionLabel = ['UA', 'AC', 'A', 'F'];
+var materialsOption = '';
+var usersOption = '';
 var print_html = '';
-var refreshSubjects = false;
-var refreshInterval = 30000;
-var prvic = {};
-prvic.prvic = true;
-var niprvic = {};
-niprvic.prvic = false;
+
 
 function initComponents(lang) {
 	MooTools.lang.setLanguage(lang);
@@ -20,8 +13,23 @@ function initComponents(lang) {
 		'onSuccess':function(result){
 			subjectOption = JSON.decode(result);
 			addSubjects(subjectOption);
+
+			new Request({method: 'get', url: 'materials',
+				'onSuccess':function(result){
+					materialsOption = JSON.decode(result);
+					addMaterials(materialsOption);
+
+					new Request({method: 'get', url: 'users',
+						'onSuccess':function(result){
+							usersOption = JSON.decode(result);
+							addUsers(usersOption);
+					}}).send();
+			}}).send();
 	}}).send();
 
+	
+	
+	
 	$('toolbar').set('id','_old_toolbar');
 	tlb = new Element('div').set('id','toolbar');
 	tlb.inject($('_old_toolbar'),'after');
@@ -42,7 +50,12 @@ function initComponents(lang) {
 		onClick:function(){reset();}
 	});
 	clearBtn.addTo('toolbar');
-
+	var pdfBtn = new Jx.Button({
+		label: MooTools.lang.get('msg','dispatcher.pdf'),
+		image: Hydra.pageContext+'/img/icon_pdf.gif',
+		onClick:function(){tiskaj();}
+	});
+	pdfBtn.addTo('toolbar');
 	
 	// texti
 	$('h5').set('html',MooTools.lang.get('msg','dispatcher.seznam_obrazcev'));
@@ -85,96 +98,143 @@ function getDocuments () {
 		url: 'dispatcher-table',
 		data: niprvic,
 		'onSuccess':function(result){
-			documents = JSON.decode(result);
-//			addToTable(true);
 	}}).send();
 }	
 
-function search () {
-	var sortorder = 0;
-	if ($('order_1').checked) sortorder = 1;
-	if ($('order_2').checked) sortorder = 2;
-	var selText = $('searchText').value;
-	var selVozilo = $('selectvozilo').value;
-	var selStatus = $('selectstatus').value;
-	var datumOd = $('datum_od').value;
-	var datumDo = $('datum_do').value;
- 
-    datagrid.options.sortOrder = sortorder;
-    datagrid.options.selText = escape(selText);
-    datagrid.options.selVozilo = selVozilo;
-    datagrid.options.selStatus = selStatus;
-    datagrid.options.datumOd = datumOd;
-    datagrid.options.datumDo = datumDo;
-    
-    datagrid.options.page = 1;
-    datagrid.refresh();
-}
 
 function reset () {
-	$('searchText').value = '';
-	$('selectvozilo').value = -1;
-	$('selectstatus').value = -1;
-	$('datum_od').value = '';
-	$('datum_do').value = '';
-	
-	datagrid.options.sortOrder = 1;
-	datagrid.options.selText = '';
-    datagrid.options.selVozilo = -1;
-    datagrid.options.selStatus = -1;
-    datagrid.options.datumOd = '';
-    datagrid.options.datumDo = '';
-    
-    datagrid.options.page = 1;
-    datagrid.refresh();
+	$('selectStranka').value = -1;
+	$('selectOdpadek').value = -1;
+	$('selectNarocil').value = -1;
+	$('naslov').value = '';
+	$('kraj').value = '';
+	$('kontakt').value = '';
+	$('telefon').value = '';
+	$('kupec').value = '';
+	$('osnovno').value = '';
+	$('datum').value = '';
+	$('kolicina').value = '';
+	$('opomba').value = '';
 }
 
 
-function potrdiVozilo(id, st){
+function confirm(){
+	if ($('selectStranka').value == -1) {
+		alert(MooTools.lang.get('msg','dispatcher.izberi_stranko_error'));
+		return;
+	}
+	if ($('selectNarocil').value == -1) {
+		alert(MooTools.lang.get('msg','dispatcher.izberi_uporabnika_error'));
+		return;
+	}
+	if (isNaN($('kolicina').value)) {
+		alert(MooTools.lang.get('msg','dispatcher.izberi_kolicino_error'));
+		return;
+	}
+	if ($('datum').value == '') {
+		alert(MooTools.lang.get('msg','dispatcher.izberi_datum_error'));
+		return;
+	}
+	var f = $('datum').value.split(".");
+	var fr = new Date(f[2],f[1]-1,f[0]);
+	var frd = new Date(fr.getTime());
+	var t = new Date();
+	var tr = new Date(t.getFullYear(),t.getMonth(),t.getDate());
+	var trd = new Date(tr.getTime());
+	if (frd < trd) {
+		alert(MooTools.lang.get('msg','dispatcher.izberi_datum_error_2'));
+		return;
+	}
+
 	var podatkiJSON = {};
-	podatkiJSON[st] = id;
+	podatkiJSON["stranka"] = $('selectStranka').value;
+	podatkiJSON["material"] = $('selectOdpadek').value;
+	podatkiJSON["narocil"] = $('selectNarocil').value;
+	podatkiJSON["datum"] = $('datum').value;
+	podatkiJSON["kolicina"] = $('kolicina').value;
+	podatkiJSON["opomba"] = $('opomba').value;
 	var j = {};
 	j.confirmData = JSON.encode(podatkiJSON);		
+	
 	new Request({
-		method: 'post', 
+		method: 'get', 
 		url: 'confirm',
 		data: j,
 		'onSuccess':function(result){}
 	}).send();
 }
 
-function confirm(){
-	new Request({
-		method: 'get', 
-		url: 'confirmAll',
-		'onSuccess':function(result){}
-	}).send();
-}
-
 
 function tiskaj() {
+	
+	var stranka = "";
+	if ($('selectStranka').selectedIndex != 0) 
+		stranka = $('selectStranka').options[$('selectStranka').selectedIndex].text;
+	var odpadek = "";
+	if ($('selectOdpadek').selectedIndex != 0) 
+		odpadek = $('selectOdpadek').options[$('selectOdpadek').selectedIndex].text;
+	var narocil = "";
+	if ($('selectNarocil').selectedIndex != 0) 
+		narocil = $('selectNarocil').options[$('selectNarocil').selectedIndex].text;
+	
 	print_html = '<table>';
-	addToTable(false);
+	print_html += 
+	'<tr>' +
+		'<td align="left">'+MooTools.lang.get('msg','dispatcher.stranka')+'</td>' +
+		'<td align="left">'+stranka.substr(0,stranka.indexOf(";"))+'</td>' +
+	'</tr>' +
+	'<tr>' +
+		'<td align="left">'+MooTools.lang.get('msg','dispatcher.naslov')+'</td>' +
+		'<td align="left">'+$('naslov').value+'</td>' +
+	'</tr>' +
+	'<tr>' +
+		'<td align="left">'+MooTools.lang.get('msg','dispatcher.kraj')+'</td>' +
+		'<td align="left">'+$('kraj').value+'</td>' +
+	'</tr>' +
+	'<tr>' +
+		'<td align="left">'+MooTools.lang.get('msg','dispatcher.kontakt')+'</td>' +
+		'<td align="left">'+$('kontakt').value+'</td>' +
+	'</tr>' +
+	'<tr>' +
+		'<td align="left">'+MooTools.lang.get('msg','dispatcher.telefon')+'</td>' +
+		'<td align="left">'+$('telefon').value+'</td>' +
+	'</tr>' +
+	'<tr>' +
+		'<td align="left">'+MooTools.lang.get('msg','dispatcher.kupec')+'</td>' +
+		'<td align="left">'+$('kupec').value+'</td>' +
+	'</tr>' +
+	'<tr>' +
+		'<td align="left">'+MooTools.lang.get('msg','dispatcher.datum')+'</td>' +
+		'<td align="left">'+$('datum').value+'</td>' +
+	'</tr>' +
+	'<tr>' +
+		'<td align="left">'+MooTools.lang.get('msg','dispatcher.odpadek')+'</td>' +
+		'<td align="left">'+odpadek+'</td>' +
+	'</tr>' +
+	'<tr>' +
+		'<td align="left">'+MooTools.lang.get('msg','dispatcher.kolicina')+'</td>' +
+		'<td align="left">'+$('kolicina').value+'</td>' +
+	'</tr>' +
+	'<tr>' +
+		'<td align="left">'+MooTools.lang.get('msg','dispatcher.osnovno')+'</td>' +
+		'<td align="left">'+$('osnovno').value+'</td>' +
+	'</tr>' +
+	'<tr>' +
+		'<td align="left">'+MooTools.lang.get('msg','dispatcher.opomba')+'</td>' +
+		'<td align="left">'+$('opomba').value+'</td>' +
+	'</tr>' +
+	'<tr>' +
+		'<td align="left">'+MooTools.lang.get('msg','dispatcher.narocil')+'</td>' +
+		'<td align="left">'+narocil+'</td>' +
+	'</tr>';
 	print_html += '</table>';
     
+	$('form_title').value=MooTools.lang.get('msg','welcome.title');
 	$('form_html').value=print_html;
 	$('listForms').action = Hydra.pageContext+"/pdf";
     $('listForms').submit();	
 }
 
-function refresh(id, evl) {
-	var j = {};
-	j.refreshData = id;
-	j.evl = evl;
-	
-	new Request({
-		method: 'post', 
-		url: 'refresh',
-		data: j,
-		'onSuccess':function(result){
-		}
-	}).send();
-}
 
 
 function addSubjects() {
@@ -194,18 +254,28 @@ function changeSubject() {
 			$('kontakt').value = subjectOption[ii]['kont_os'];
 			$('telefon').value = subjectOption[ii]['telefon'];
 			$('kupec').value = subjectOption[ii]['kupec'];
-			
+			$('osnovno').value = subjectOption[ii]['osnovna'];
+			$('opomba').value = subjectOption[ii]['opomba'];
 		}
 	}
 }
 
-function addVehicles() {
-	var vehiclesOptionData = '<option value=-1 selected>'+MooTools.lang.get('msg','dispatcher.izberi_vozilo')+'</option>';
-	for (var ii=0;ii<vehicleOption.length;ii++) {
-		vehiclesOptionData += '<option value='+vehicleOption[ii]['sifra']+'>'+vehicleOption[ii]['naziv']+'</option>';
+function addMaterials() {
+	var materialsOptionData = '<option value=-1 selected>'+MooTools.lang.get('msg','dispatcher.izberi_material')+'</option>';
+	for (var ii=0;ii<materialsOption.length;ii++) {
+		materialsOptionData += '<option value='+materialsOption[ii]['koda']+'>'+materialsOption[ii]['koda']+" "+materialsOption[ii]['material']+'</option>';
 	}
-	$('selectvozilo').set('html', vehiclesOptionData);
+	$('selectOdpadek').set('html', materialsOptionData);
 }
+
+function addUsers() {
+	var usersOptionData = '<option value=-1 selected>'+MooTools.lang.get('msg','dispatcher.izberi_uporabnika')+'</option>';
+	for (var ii=0;ii<usersOption.length;ii++) {
+		usersOptionData += '<option value='+usersOption[ii]['id']+'>'+usersOption[ii]['name']+'</option>';
+	}
+	$('selectNarocil').set('html', usersOptionData);
+}
+
 
 
 
@@ -281,7 +351,7 @@ window.addEvent("domready", function(){
                 
     datagrid = new omniGrid('myTableGrid', {
         columnModel: cmu,
-        url:"dispatcher-table",
+        //url:"dispatcher-table",
         perPageOptions: [10,20,50,100,200],
         perPage:10,
         page:1,

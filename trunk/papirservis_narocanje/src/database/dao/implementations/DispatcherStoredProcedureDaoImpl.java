@@ -12,8 +12,10 @@ import javax.sql.DataSource;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.classes.objects.Document;
+import org.classes.objects.Material;
 import org.classes.objects.Subject;
 import org.classes.objects.User;
+import org.json.simple.JSONObject;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
@@ -98,7 +100,7 @@ public class DispatcherStoredProcedureDaoImpl implements DispatcherStoredProcedu
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public Collection GetSubjects(String userId, String enotaId) {
 	    return this.jdbcTemplate.query( 
-	    		"SELECT sif_str, s.naziv, s.naslov, s.posta, s.kraj, telefon, kont_os, osnovna, kol_os, k.naziv kupec, sk.tekst " +
+	    		"SELECT sif_str, s.naziv, s.naslov, s.posta, s.kraj, telefon, kont_os, s.opomba, osnovna, kol_os, k.naziv kupec, sk.tekst " +
 				"FROM (SELECT stranke.*  " +
 				"	FROM stranke, (SELECT sif_str, max(zacetek) datum FROM stranke group by sif_str ) zadnji " + 
 				"	WHERE stranke.sif_str = zadnji.sif_str and  " +
@@ -133,13 +135,101 @@ public class DispatcherStoredProcedureDaoImpl implements DispatcherStoredProcedu
 	        subject.setPosta(rs.getString("posta"));
 	        subject.setSkupina(rs.getString("tekst"));
 	        subject.setTelefon(rs.getString("telefon"));
+	        subject.setOpomba(rs.getString("opomba"));
 	        
 	        return subject;
 	    }
 	}
 	
 	
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	public Collection GetMaterials() {
+	    return this.jdbcTemplate.query( 
+	    		"SELECT materiali.*  " +
+				"FROM materiali, (SELECT koda, max(zacetek) datum FROM materiali group by koda ) zadnji1 " + 
+				"WHERE materiali.koda = zadnji1.koda and  " +
+				"	      materiali.zacetek = zadnji1.datum " +
+				"ORDER BY koda",
+	    		new Object[]{},
+	    		new MaterialsMapper());
+	}
+
+	@SuppressWarnings("rawtypes")
+	private static final class MaterialsMapper implements RowMapper {
+
+	    public Object mapRow(ResultSet rs, int rowNum) throws SQLException {
+	    	Material material = new Material();
+	    	material.setKoda(rs.getString("koda"));
+	    	material.setMaterial(rs.getString("material"));
+	        
+	        return material;
+	    }
+	}
 	
+
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	public Collection GetUsers() {
+	    return this.jdbcTemplate.query( 
+	    		"SELECT * FROM uporabniki ORDER BY ime_in_priimek",
+	    		new Object[]{},
+	    		new UsersMapper());
+	}
+
+	@SuppressWarnings("rawtypes")
+	private static final class UsersMapper implements RowMapper {
+
+	    public Object mapRow(ResultSet rs, int rowNum) throws SQLException {
+	        User user = new User();
+	        user.setId(rs.getString("sif_upor"));
+	        user.setName(rs.getString("ime_in_priimek"));
+	        
+	        return user;
+	    }
+	}
+	
+
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	public int AddOrder(JSONObject jdata) {
+		String stranka = (String) jdata.get("stranka");
+		String material = (String) jdata.get("material");
+		String narocil = (String) jdata.get("narocil");
+		String datum = (String) jdata.get("datum");
+		String kolicina = (String) jdata.get("kolicina");
+		String opomba = (String) jdata.get("opomba");
+		String [] tokens = datum.split("\\.");
+		log.debug(datum+"-"+tokens+"-"+tokens.length);
+		String dobLeto = tokens[2];
+		String datumUTC = tokens[2]+"-"+tokens[1]+"-"+tokens[0];
+		int nextId = GetNextId(dobLeto);
+		Map kupec = GetKupec(stranka);
+		
+		return this.jdbcTemplate.update( 
+	    		"insert into dob" + dobLeto + " (st_dob, pozicija, datum, sif_str, sif_kupca, koda, kolicina, opomba, skupina, uporabnik) " +
+	    		"values (?,?,?,?,?,?,?,?,?,?)",
+	    		new Object[]{nextId, 1, datumUTC, stranka, kupec.get("sif_kupca"), material, kolicina, opomba, kupec.get("skupina"), narocil});
+	}
+	
+	
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	public int GetNextId(String dobLeto) {
+			this.jdbcTemplate.update("update dob_bianco set st_dob = st_dob + 1 where id = 'dob" + dobLeto + "'");
+			return this.jdbcTemplate.queryForInt("SELECT max(st_dob) cnt FROM `dob_bianco` where id = 'dob" + dobLeto + "'");
+	}
+	
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	public Map GetKupec(String stranka) {
+			return this.jdbcTemplate.queryForMap(
+					"SELECT distinct kupci.sif_kupca, skupina "+
+					"FROM kupci left join (SELECT stranke.*  " +
+					"						FROM stranke, (SELECT sif_str, max(zacetek) datum FROM stranke group by sif_str ) zadnji " + 
+					"						WHERE stranke.sif_str = " + stranka + " and " +
+					"							stranke.sif_str = zadnji.sif_str and  " +
+					"     						stranke.zacetek = zadnji.datum) s " +
+					"ON (kupci.sif_kupca = s.sif_kupca) "+
+					"WHERE s.sif_str = " + stranka);
+	}	
+
+
 	public Object GetDocuments(String documentType, String sortOrder, String sortType, String sortString) {
 		try {
 			GetDocuments proc = new GetDocuments(getJdbcTemplate().getDataSource());

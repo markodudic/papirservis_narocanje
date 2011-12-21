@@ -40,7 +40,6 @@ public class PdfCreator {
 
 			jsp = jsp.replace("${formHtml}",html);
 			jsp = jsp.replace("${formTitle}",title);
-			//log.debug(jsp);
 			InputStream jspis = new ByteArrayInputStream(jsp.getBytes("utf-8"));
 			
 			DocumentBuilder builder = null;
