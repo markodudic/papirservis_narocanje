@@ -37,6 +37,14 @@ public class User {
 	@Size(min = 1, max = 255)
 	private String enota;
 	
+	@Null
+	@Size(min = 1, max = 255)
+	private String narocila;
+
+	@Null
+	@Size(min = 1, max = 255)
+	private String sif_kupca;
+
 	public String getEnota() {
 		return enota;
 	}
@@ -75,6 +83,22 @@ public class User {
 
 	public void setStatus(String status) {
 		this.status = status;
+	}
+
+	public String getSif_kupca() {
+		return sif_kupca;
+	}
+
+	public void setSif_kupca(String sif_kupca) {
+		this.sif_kupca = sif_kupca;
+	}
+
+	public String getNarocila() {
+		return narocila;
+	}
+
+	public void setNarocila(String narocila) {
+		this.narocila = narocila;
 	}
 	
 

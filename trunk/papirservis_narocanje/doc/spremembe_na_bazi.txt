@@ -1,0 +1,4 @@
+ALTER TABLE `uporabniki`  ADD COLUMN `narocila` TINYINT(1) UNSIGNED NULL DEFAULT '0' COMMENT '0 - nima dostopa, 1 - kupec; 2 - zaposleni' AFTER `enote`,  ADD COLUMN `sif_kupca` VARCHAR(255) NOT NULL AFTER `narocila`;
+ALTER TABLE `uporabniki`  ADD INDEX `uporabniki_kupci_fk` (`sif_kupca`);
+ALTER TABLE `uporabniki`  ADD CONSTRAINT `uporabniki_kupci_fk` FOREIGN KEY (`sif_kupca`) REFERENCES `kupci` (`sif_kupca`) ON UPDATE NO ACTION ON DELETE NO ACTION;
+update uporabniki set narocila = 1;

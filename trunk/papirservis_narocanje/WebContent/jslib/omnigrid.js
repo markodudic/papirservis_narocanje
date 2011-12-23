@@ -515,8 +515,6 @@ var omniGrid = new Class({
 			
 		this.setData(data);
 		
-		showVehicles();
-		
 		// API
 		this.fireEvent("loaddata", {target:this, pkey:data.pkey});	// jedino pkey salje van jer se on nigdje ne sprema trenutno unutar OMG
 	},
