@@ -1,12 +1,14 @@
 package org.classes.controllers;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.StringReader;
-import java.net.URLDecoder;
-import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -15,12 +17,14 @@ import java.util.zip.GZIPOutputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.classes.login.Scrambler;
-import org.classes.objects.Document;
 import org.classes.objects.Material;
+import org.classes.objects.Order;
 import org.classes.objects.Subject;
 import org.classes.objects.User;
 import org.classes.report.PdfCreator;
@@ -35,6 +39,11 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.view.RedirectView;
+import org.w3c.dom.Document;
+import org.w3c.tidy.Tidy;
+import org.xhtmlrenderer.pdf.ITextRenderer;
+
+import com.lowagie.text.pdf.BaseFont;
 
 import database.dao.interfaces.DispatcherStoredProcedureDao;
 
@@ -48,16 +57,7 @@ public class DispatcherController {
 	
 	//private Validator customPageValidator;
 	private String contextPath = "";
-	private String documentType = "";
-	private String receiver = "";
-	private String sender = "";
-	private String jobID = "";
-	private String refreshItems = "";
-	private String refreshSubjects = "";
-	private String refreshAllDocuments = "";
-	private String refreshDocument = "";
 
-	HashMap hm = new HashMap();
 
 	@Autowired
 	DispatcherStoredProcedureDao dispatcherStoredProcedure;
@@ -69,31 +69,18 @@ public class DispatcherController {
 
 	@Autowired
 	public DispatcherController(Validator validator) {
-	    hm.put("dobavitelj", "Partner02_Name");
-	    hm.put("naslov", "Partner02_Address2");
-	    hm.put("narocilo", "GenericText01, GenericText02");
-	    hm.put("evl", "DocumentID");
-	    hm.put("datum_narocila", "Date01"); 
-	    hm.put("datum_izvedbe", "Date02"); 
-	    hm.put("vrsta_odpadka", "TradeUnitName"); 
-	    hm.put("klasifikacijska_stevilka", "GenericData01"); 
-	    hm.put("kolicina", "Quantity"); 
-	    hm.put("placnik", "Buyer01_Name"); 
-	    hm.put("kontakt", "Buyer01_ReferenceNumber01, PhoneNumber, FaxNumber, Email"); 
-	    hm.put("opomba", "Partner03_GenericText02"); 
+
 	} 
 
 
 
 	
-	@RequestMapping(value="/dispatcher", method=RequestMethod.GET)
+	@RequestMapping(value="/orders", method=RequestMethod.GET)
 	public ModelAndView GetDocuments(HttpServletResponse response) throws Exception {
-		log.debug("**** GetDocuments");
 		setChacheHeaders(response);
 		
 		ModelAndView mav = new ModelAndView();
 		mav.setViewName("dispatcher");
-		//mav.addObject("page", customPageStoredProcedure.GetCustomPages());
 		return mav;
 	}
 
@@ -104,112 +91,42 @@ public class DispatcherController {
 		
 		ModelAndView mav = new ModelAndView();
 		mav.setViewName("index");
-		//mav.addObject("page", customPageStoredProcedure.GetCustomPages());
 		return mav;
 	}
 	
-	private static final Pattern p = Pattern.compile("\\\\u([0-9A-F]{4})");
-	public static String U2U(String s) {
-		String res = s;
-		Matcher m = p.matcher(res);
-		while(m.find()) {
-			res = res.replaceAll("\\" + m.group(0),	Character.toString((char)Integer.parseInt(m.group( 1), 16)));
-		}
-	return res;
-	}
-	
-	List documentsOld = new ArrayList();
 	String dataArrayOld = "";
-	@RequestMapping(value="/dispatcher-table", method=RequestMethod.GET)
-	public ModelAndView GetDocumentsTable(
-			@RequestParam String page, 
-			@RequestParam String perpage, 
-			@RequestParam String sorton, 
-			@RequestParam String sortby, 
-			@RequestParam String sortorder, 
-			@RequestParam String seltext, 
-			@RequestParam String selvozilo, 
-			@RequestParam String selstatus, 
-			@RequestParam String datumod, 
-			@RequestParam String datumdo, 
-			HttpServletResponse response) throws Exception {
-		log.debug("**** GetDocuments="+page+" "+perpage+" "+sorton+" "+sortby+" "+sortorder);
-		log.debug("**** GetDocuments="+seltext + " " + selvozilo+" "+selstatus+" "+datumod+" "+datumdo);
+	@RequestMapping(value="/orders_table", method=RequestMethod.GET)
+	public ModelAndView GetOrdersTable(
+					@RequestParam String page, 
+					@RequestParam String perpage, 
+					@RequestParam String sorton, 
+					@RequestParam String sortby, 
+					@RequestParam String sortorder, 
+					HttpServletRequest request, 
+					HttpServletResponse response) throws Exception {
+		log.debug("**** GetOrders="+sortorder+"-"+sortby+"-"+sorton);
 		
-		seltext = U2U(seltext.replace("%u", "\\u"));
-		seltext = URLDecoder.decode(seltext, "UTF-8");
-		setChacheHeaders(response);
-		
-		//premapiram nazive kolon ce je sortOrder=0, za sortiranje ce kliknes na header vrstice
-		if (Integer.parseInt(sortorder) == 0) {
-			if (hm.containsKey(sorton))
-				sorton = (String) hm.get(sorton);
-		}
-		log.debug("**** sorton="+sorton);
-		
-		List documents = (List) dispatcherStoredProcedure.GetDocuments(documentType, sortorder, sortby, sorton);
+		HttpSession session = request.getSession();
+		String sif_kupca = (String) session.getAttribute("sif_kupca");
+		String narocila = (String) session.getAttribute("narocila");
+
+		List orders = (List) dispatcherStoredProcedure.GetOrders(sif_kupca, narocila, sortorder, sortby, sorton);
 		
 		int start = (Integer.parseInt(page)-1) * Integer.parseInt(perpage);
 		int end = start + Integer.parseInt(perpage);
-		//if (end > documents.size()) end = documents.size();
 		
 	    JSONArray dataArray = new JSONArray();
 	    int cur = 0;
 	    int curSet = 0;
-	    for (int i=0; i<documents.size(); i++) {
-	    	Document document = (Document) documents.get(i);
-			Calendar calOd = Calendar.getInstance();
-			Calendar calDo = Calendar.getInstance();
-			Calendar cal = Calendar.getInstance();
-			
-			if (!datumod.equals("")) {
-				int d  = Integer.parseInt(datumod.substring(0,2));
-				int m  = Integer.parseInt(datumod.substring(3,5));
-				int y  = Integer.parseInt(datumod.substring(6,10));
-			    calOd.set(y, m, d);
+	    for (int i=0; i<orders.size(); i++) {
+	    	Order order = (Order) orders.get(i);
+			if ((cur >= start) && (cur <= end) && (curSet <= Integer.parseInt(perpage))) {
+				dataArray.add(curSet, orderJSON(order));
+				curSet++;
 			}
-			if (!datumdo.equals("")) {
-				int d  = Integer.parseInt(datumdo.substring(0,2));
-				int m  = Integer.parseInt(datumdo.substring(3,5));
-				int y  = Integer.parseInt(datumdo.substring(6,10));
-			    calDo.set(y, m, d);
-			}
-			if (document.getDatum_narocila()!=null) {
-				int d  = Integer.parseInt(document.getDatum_narocila().substring(0,2));
-				int m  = Integer.parseInt(document.getDatum_narocila().substring(3,5));
-				int y  = Integer.parseInt(document.getDatum_narocila().substring(6,10));
-			    cal.set(y, m, d);
-			}
-			
-			if ((seltext.equals("") || 
-				 document.getDobavitelj().toUpperCase().indexOf(seltext.toUpperCase()) > -1 ||
-				 document.getNaslov().toUpperCase().indexOf(seltext.toUpperCase()) > -1 ||
-				 document.getNarocilo().toUpperCase().indexOf(seltext.toUpperCase()) > -1 ||
-				 document.getEvl().toUpperCase().indexOf(seltext.toUpperCase()) > -1 ||
-				 document.getVrsta_odpadka().toUpperCase().indexOf(seltext.toUpperCase()) > -1 ||
-				 document.getKlasifikacijska_stevilka().toUpperCase().indexOf(seltext.toUpperCase()) > -1 ||
-				 document.getPlacnik().toUpperCase().indexOf(seltext.toUpperCase()) > -1 ||
-				 document.getKontakt().toUpperCase().indexOf(seltext.toUpperCase()) > -1 ||
-				 document.getOpomba().toUpperCase().indexOf(seltext.toUpperCase()) > -1) &&
-				(selstatus.equals("-1") || 
-				 document.getStatus().equals(selstatus)) &&
-				(selvozilo.equals("-1") || 
-				 document.getVozilo().equals(selvozilo)) &&
-				(datumod.equals("") || 
-				 cal.after(calOd)) &&
-				(datumdo.equals("") || 
-				 cal.before(calDo))
-				) {
-					if ((cur >= start) && (cur <= end) && (curSet <= Integer.parseInt(perpage))) {
-						dataArray.add(curSet, documentJSON(document));
-						curSet++;
-					}
-					cur++;
-			}
-			//if (curSet >= Integer.parseInt(perpage)) break;
+			cur++;
 		}
-	    
-	     
+	         
 		String returnData = "";
 		if (dataArrayOld.equals(dataArray.toString())) {
 			JSONArray dataArrayEmpty = new JSONArray();
@@ -224,23 +141,17 @@ public class DispatcherController {
 	}
 
 	
-	public JSONObject documentJSON(Document document) {
+	public JSONObject orderJSON(Order order) {
 		JSONObject data = new JSONObject();
 		try {
-			data.put("dobavitelj", document.getDobavitelj()==null?"":document.getDobavitelj());
-			data.put("naslov", document.getNaslov()==null?"":document.getNaslov());
-			data.put("narocilo", document.getNarocilo()==null?"":document.getNarocilo());
-			data.put("evl", document.getEvl()==null?"":document.getEvl());
-			data.put("datum_narocila", document.getDatum_narocila()==null?"":document.getDatum_narocila());
-			data.put("datum_izvedbe", document.getDatum_izvedbe()==null?"":document.getDatum_izvedbe());
-			data.put("vrsta_odpadka", document.getVrsta_odpadka()==null?"":document.getVrsta_odpadka());
-			data.put("klasifikacijska_stevilka", document.getKlasifikacijska_stevilka()==null?"":document.getKlasifikacijska_stevilka());
-			data.put("kolicina", document.getKolicina());
-			data.put("placnik", document.getPlacnik()==null?"":document.getPlacnik());
-			data.put("kontakt", document.getKontakt()==null?"":document.getKontakt());
-			data.put("opomba", document.getOpomba()==null?"":document.getOpomba());
-			data.put("status", document.getStatus()==null?"":document.getStatus());
-			data.put("vozilo", document.getVozilo()==null?"":document.getVozilo());
+			data.put("st_dob", order.getStDob()==null?"":order.getStDob());
+			data.put("datum", order.getDatum()==null?"":order.getDatum());
+			data.put("stranka", order.getStranka()==null?"":order.getStranka());
+			data.put("kupec", order.getKupec()==null?"":order.getKupec());
+			data.put("material", order.getMaterial()==null?"":order.getMaterial());
+			data.put("kolicina", order.getKolicina()==null?"":order.getKolicina());
+			data.put("opomba", order.getOpomba()==null?"":order.getOpomba());
+			data.put("narocil", order.getNarocil()==null?"":order.getNarocil());
 		} catch (Exception e) {
 			log.debug(e);
 		}
@@ -254,10 +165,10 @@ public class DispatcherController {
 		setChacheHeaders(response);
 		
 		HttpSession session = request.getSession();
-		String userId = (String) session.getAttribute("id");
-		String sifEnote = (String) session.getAttribute("enota");
+		String sif_kupca = (String) session.getAttribute("sif_kupca");
+		String narocila = (String) session.getAttribute("narocila");
 
-		List subjects = (List) dispatcherStoredProcedure.GetSubjects(userId, sifEnote);
+		List subjects = (List) dispatcherStoredProcedure.GetSubjects(sif_kupca, narocila);
 		
 		JSONArray dataArray = new JSONArray();
 		for (int i=0; i<subjects.size(); i++) {
@@ -341,7 +252,11 @@ public class DispatcherController {
 		log.debug("**** users");
 		setChacheHeaders(response);
 		
-		List users = (List) dispatcherStoredProcedure.GetUsers();
+		HttpSession session = request.getSession();
+		String sif_kupca = (String) session.getAttribute("sif_kupca");
+		String narocila = (String) session.getAttribute("narocila");
+
+		List users = (List) dispatcherStoredProcedure.GetUsers(sif_kupca, narocila);
 		
 		JSONArray dataArray = new JSONArray();
 		for (int i=0; i<users.size(); i++) {
@@ -393,6 +308,8 @@ public class DispatcherController {
 		session.setAttribute("surname", user.getSurname());
 		session.setAttribute("enota", user.getEnota());
 		session.setAttribute("status", user.getStatus());
+		session.setAttribute("sif_kupca", user.getSif_kupca());
+		session.setAttribute("narocila", user.getNarocila());
 		
 		JSONArray dataArray = new JSONArray();
 		dataArray.add(userJSON(user));
@@ -433,10 +350,10 @@ public class DispatcherController {
 		dispatcherStoredProcedure.AddOrder(jdata);
 		
 		RedirectView rv = new RedirectView();
-		rv.setUrl(contextPath+"/dispatcher");
+		rv.setUrl(contextPath+"/orders");
 		return rv;	
 	}	
-	
+	 
 
 	
 	@RequestMapping(value="/pdf", method=RequestMethod.POST)
@@ -448,6 +365,37 @@ public class DispatcherController {
 		String realPath = request.getSession().getServletContext().getRealPath("/").replaceAll("\\\\", "/");
 		log.debug("**** Pdf:"+title+"-"+html);
 		PdfCreator.createPdf(html,title,realPath,request,response);
+	}
+	
+	@RequestMapping(value="/xml", method=RequestMethod.POST)
+	public void xml(@RequestParam("form_html") String xml,
+			HttpServletRequest request,
+			HttpServletResponse response
+		) {
+		log.debug("**** Xml:"+xml);
+
+		response.setContentType("text/xml");
+		response.setHeader("Content-disposition", "attachment; filename=form.xml");
+		OutputStream out = null;
+		try {
+			out = response.getOutputStream();			
+			out.write(xml.getBytes());
+			out.flush();
+			out.close();
+		} catch (Exception e) {
+			response.setContentType("text/html");
+			response.setHeader("Content-disposition", null);
+			try {
+				e.printStackTrace();
+				out.write("PDF error".getBytes());
+				out.flush();
+				out.close();
+			} catch (IOException e1) {}
+		} finally {
+			if (out!= null) try { out.close(); } catch (IOException e) {}
+		}
+
+		
 	}
 	
 	
@@ -466,86 +414,6 @@ public class DispatcherController {
 		return showErrorMsg(request,"error.url_ne_obstaja");
 	}	*/
 	
-	public String getDocumentType() {
-		return documentType;
-	}
-
-
-	public void setDocumentType(String documentType) {
-		this.documentType = documentType;
-	}
-
-	
-
-	public String getReceiver() {
-		return receiver;
-	}
-
-
-	public void setReceiver(String receiver) {
-		this.receiver = receiver;
-	}
-
-
-	public String getSender() {
-		return sender;
-	}
-
-
-	public void setSender(String sender) {
-		this.sender = sender;
-	}
-
-
-	public String getJobID() {
-		return jobID;
-	}
-
-
-	public void setJobID(String jobID) {
-		this.jobID = jobID;
-	}
-
-
-	public String getRefreshItems() {
-		return refreshItems;
-	}
-
-
-	public void setRefreshItems(String refreshItems) {
-		this.refreshItems = refreshItems;
-	}
-
-
-	public String getRefreshSubjects() {
-		return refreshSubjects;
-	}
-
-
-	public void setRefreshSubjects(String refreshSubjects) {
-		this.refreshSubjects = refreshSubjects;
-	}
-
-
-	public String getRefreshAllDocuments() {
-		return refreshAllDocuments;
-	}
-
-
-	public void setRefreshAllDocuments(String refreshAllDocuments) {
-		this.refreshAllDocuments = refreshAllDocuments;
-	}
-
-
-	public String getRefreshDocument() {
-		return refreshDocument;
-	}
-
-
-	public void setRefreshDocument(String refreshDocument) {
-		this.refreshDocument = refreshDocument;
-	}
-
 
 	public ModelAndView ajaxResult(String okmsg,String errorMsg) {
 		ModelAndView mav = new ModelAndView();

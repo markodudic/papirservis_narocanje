@@ -53,14 +53,6 @@
 	<bean
 		class="org.classes.controllers.DispatcherController" id="customPageController" init-method="initialize">
 		<property name="contextPath" value="/narocanje"/>
-		<property name="documentType" value="Ekol_881_1"/>
-		<property name="receiver" value="HySrv_RAZVOJ"/>
-		<property name="sender" value="HydraEkolDispatcher_DEV"/>
-		<property name="jobID" value="Job_Sync_OnDemandSyncExecute"/>
-		<property name="refreshItems" value="SyncStrategy_WebService_XML_ItemsGet_SpecialEkolVasco_v1"/>
-		<property name="refreshSubjects" value="SyncStrategy_WebService_XML_SubjectsGet_SpecialEkolVasco_v1"/>
-		<property name="refreshAllDocuments" value="SyncStrategy_WebService_XML_DocumentsGet_SpecialEkolVasco_v1"/>
-		<property name="refreshDocument" value="SyncStrategy_WebService_XML_SpecificDocumentGet_SpecialEkolVasco_v1"/>
 	</bean>
 
 	

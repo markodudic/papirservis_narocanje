@@ -60,7 +60,7 @@ function login () {
 			} else if (login[0].status == 2) {
 				$('l_error').set('html',MooTools.lang.get('msg','login.wrong_pass') + "<br>");
 			} else {
-				window.location=Hydra.pageContext+"/dispatcher";
+				window.location=Hydra.pageContext+"/orders";
 				//$('loginForm').action = Hydra.pageContext+"/dispatcher";
 				//$('loginForm').submit();				
 			}

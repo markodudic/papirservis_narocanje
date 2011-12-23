@@ -25,76 +25,62 @@ if (login == null || !login.equals("0")) {
 	<script type="text/javascript" src="jslib/jxlib/jxlib.js"></script>
 	<script type="text/javascript" src="js/dispatcher.js"></script>
 	<script type="text/javascript" src="jslib/slimpicker.js"></script>
-	<script type="text/javascript" src="js/inflate.js"></script>
 	<link rel="stylesheet" media="screen" href="css/omnigrid.css" type="text/css" />
 	<script type="text/javascript" src="jslib/omnigrid.js"></script>
+	<script type="text/javascript" src="jslib/progressbar.js"></script>
+	<script type="text/javascript" src="jslib/upload.js"></script>
+	
 	
 </head>
 <body>
 	<jsp:include page="_header.jsp"/>
-	<h5 id="h5"></h5>
+	<h5 id="vnos"></h5>
 	<div id='toolbar'>
 		<!-- button type="button"></button-->
 	</div>
+	<!-- form action="" method="get">
+		<a href="#">Upload a picture of you:</a>
+		<div id="upload"></div>
+		<input type="submit" value="submit"/>
+	</form -->
+	
 	<form id="listForms" action="" method="post" target="">
-		<!-- input type="hidden" id="confirmData" name="confirmData" value=""/ -->
-		<!-- input type="hidden" id="refreshData" name="refreshData" value=""/-->
 		<input type="hidden" id="ReportName" name="ReportName" value=""/>
 		<input id='form_html' name='form_html' type="hidden" />
 		<input id='form_title' name='form_title' type="hidden" />
+		
 		<div id="table-wrapper">
 			<table id="searchtable">
 				<tr id="tr_search">
 					<td id="td_search"><label id="l_stranka"></label></td><td id="td_search"><select id="selectStranka" onchange="changeSubject()" ></select></td>
-					<td id="td_search"><label id="l_datum"></label></td><td id="td_search"><input type="text" id="datum" value="" class="chooser-date"  /></td>
+					<td id="td_search"><label id="l_datum"></label></td><td id="td_search"><input type="text" id="i_datum" value="" class="chooser-date"  /></td>
 				</tr>
 				<tr id="tr_search">
-					<td id="td_search"><label id="l_naslov"></label></td><td id="td_search"><input type="text" id="naslov" value="" readonly/></td>
-					<td id="td_search"><label id="l_odpadek"></label></td><td id="td_search"><select id="selectOdpadek" ></select></td>
+					<td id="td_search"><label id="l_naslov"></label></td><td id="td_search"><input type="text" id="i_naslov" value="" readonly/></td>
+					<td id="td_search"><label id="l_material"></label></td><td id="td_search"><select id="selectMaterial" ></select></td>
 				</tr>
 				<tr id="tr_search">
-					<td id="td_search"><label id="l_kraj"></label></td><td id="td_search"><input type="text" id="kraj" value="" readonly /></td>
-					<td id="td_search"><label id="l_kolicina"></label></td><td id="td_search"><input type="text" id="kolicina" value="" /></td>
+					<td id="td_search"><label id="l_kraj"></label></td><td id="td_search"><input type="text" id="i_kraj" value="" readonly /></td>
+					<td id="td_search"><label id="l_kolicina"></label></td><td id="td_search"><input type="text" id="i_kolicina" value="" /></td>
 				</tr>
 				<tr id="tr_search">
-					<td id="td_search"><label id="l_kontakt"></label></td><td id="td_search"><input type="text" id="kontakt" value="" readonly /></td>
-					<td id="td_search"><label id="l_osnovno"></label></td><td id="td_search"><input type="text" id="osnovno" value="" readonly /></select></td>
+					<td id="td_search"><label id="l_kontakt"></label></td><td id="td_search"><input type="text" id="i_kontakt" value="" readonly /></td>
+					<td id="td_search"><label id="l_osnovno"></label></td><td id="td_search"><input type="text" id="i_osnovno" value="" readonly /></select></td>
 				</tr>
 				<tr id="tr_search">
-					<td id="td_search"><label id="l_telefon"></label></td><td id="td_search"><input type="text" id="telefon" value="" readonly /></td>
-					<td id="td_search"><label id="l_opomba"></label></td><td id="td_search"><input type="text" id="opomba" value="" /></td>
+					<td id="td_search"><label id="l_telefon"></label></td><td id="td_search"><input type="text" id="i_telefon" value="" readonly /></td>
+					<td id="td_search"><label id="l_opomba"></label></td><td id="td_search"><input type="text" id="i_opomba" value="" /></td>
 				</tr>
 				<tr id="tr_search">
-					<td id="td_search"><label id="l_kupec"></label></td><td id="td_search"><input type="text" id="kupec" value="" readonly /></td>
+					<td id="td_search"><label id="l_kupec"></label></td><td id="td_search"><input type="text" id="i_kupec" value="" readonly /></td>
 					<td id="td_search"><label id="l_narocil"></label></td><td id="td_search"><select id="selectNarocil" ></select></td>
 				</tr>
 			</table>
-			
-			<!-- table id="listtable">
-				<thead>
-				<tr>
-					<th id="lf_osvezi"></th>
-					<th id="lf_dobavitelj"></th>
-					<th id="lf_naslov"></th>
-					<th id="lf_narocilo"></th>
-					<th id="lf_evl"></th>
-					<th id="lf_datum_nar"></th>
-					<th id="lf_datum_izv"></th>
-					<th id="lf_vrsta_odpadka"></th>
-					<th id="lf_klas_stevilka"></th>
-					<th id="lf_kolicina"></th>
-					<th id="lf_placnik"></th>
-					<th id="lf_kontakt"></th>
-					<th id="lf_opomba"></th>
-					<!-- th id="lf_status"></th-->
-					<th id="lf_id_vozilo"></th>
-				
-				</tr>	
-				</thead>	
-				<tbody id="listtablebody">
-				</tbody>
-			</table-->
+
 		</div>
+		
+		<h5 id="odprta"></h5>	
+		
 		<div id='myTableGrid'></div>	
 	</form>
 	<jsp:include page="_footer.jsp"/>

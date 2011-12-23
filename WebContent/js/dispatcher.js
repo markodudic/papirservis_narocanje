@@ -1,7 +1,7 @@
 var subjectOption = '';
 var materialsOption = '';
 var usersOption = '';
-var print_html = '';
+
 
 
 function initComponents(lang) {
@@ -52,13 +52,27 @@ function initComponents(lang) {
 	clearBtn.addTo('toolbar');
 	var pdfBtn = new Jx.Button({
 		label: MooTools.lang.get('msg','dispatcher.pdf'),
-		image: Hydra.pageContext+'/img/icon_pdf.gif',
+		image: Hydra.pageContext+'/img/fileicons/pdf.png',
 		onClick:function(){tiskaj();}
 	});
 	pdfBtn.addTo('toolbar');
+	var xmlBtn = new Jx.Button({
+		label: MooTools.lang.get('msg','dispatcher.xml'),
+		image: Hydra.pageContext+'/img/fileicons/xml.png',
+		onClick:function(){xml();}
+	});
+	xmlBtn.addTo('toolbar');
+	var xmlBtn2 = new Jx.Button({
+		label: MooTools.lang.get('msg','dispatcher.xml2'),
+		image: Hydra.pageContext+'/img/fileicons/xml.png',
+		onClick:function(){xml();}
+	});
+	xmlBtn2.addTo('toolbar');
+	
 	
 	// texti
-	$('h5').set('html',MooTools.lang.get('msg','dispatcher.seznam_obrazcev'));
+	$('vnos').set('html',MooTools.lang.get('msg','dispatcher.vnos'));
+	$('odprta').set('html',MooTools.lang.get('msg','dispatcher.odprta'));
 	$('l_stranka').set('html',MooTools.lang.get('msg','dispatcher.stranka'));
 	$('l_naslov').set('html',MooTools.lang.get('msg','dispatcher.naslov'));
 	$('l_kraj').set('html',MooTools.lang.get('msg','dispatcher.kraj'));
@@ -67,16 +81,14 @@ function initComponents(lang) {
 	$('l_kupec').set('html',MooTools.lang.get('msg','dispatcher.kupec'));
 
 	$('l_datum').set('html',MooTools.lang.get('msg','dispatcher.datum'));
-	$('l_odpadek').set('html',MooTools.lang.get('msg','dispatcher.odpadek'));
+	$('l_material').set('html',MooTools.lang.get('msg','dispatcher.material'));
 	$('l_kolicina').set('html',MooTools.lang.get('msg','dispatcher.kolicina'));
 	$('l_osnovno').set('html',MooTools.lang.get('msg','dispatcher.osnovno'));
 	$('l_opomba').set('html',MooTools.lang.get('msg','dispatcher.opomba'));
 	$('l_narocil').set('html',MooTools.lang.get('msg','dispatcher.narocil'));
 
 		
-	var lfs = ['dobavitelj','naslov','narocilo','evl','datum_narocila',
-	           'datum_izvedbe','vrsta_odpadka','klasifikacijska_stevilka','kolicina',
-	           'placnik','kontakt','opomba','vozilo'];
+	var lfs = ['st_dob','datum','stranka','kupec','material','kolicina','opomba','narocil'];
 	for (var i = 0; i < lfs.length; i++) {
 		$(lfs[i]).set('html',MooTools.lang.get('msg','dispatcher.'+lfs[i]));
 	}
@@ -91,30 +103,22 @@ function initComponents(lang) {
 	});	
 
 }
-
-function getDocuments () {
-	new Request({
-		method: 'get', 
-		url: 'dispatcher-table',
-		data: niprvic,
-		'onSuccess':function(result){
-	}}).send();
-}	
+	
 
 
 function reset () {
 	$('selectStranka').value = -1;
-	$('selectOdpadek').value = -1;
+	$('selectMaterial').value = -1;
 	$('selectNarocil').value = -1;
-	$('naslov').value = '';
-	$('kraj').value = '';
-	$('kontakt').value = '';
-	$('telefon').value = '';
-	$('kupec').value = '';
-	$('osnovno').value = '';
-	$('datum').value = '';
-	$('kolicina').value = '';
-	$('opomba').value = '';
+	$('i_naslov').value = '';
+	$('i_kraj').value = '';
+	$('i_kontakt').value = '';
+	$('i_telefon').value = '';
+	$('i_kupec').value = '';
+	$('i_osnovno').value = '';
+	$('i_datum').value = '';
+	$('i_kolicina').value = '';
+	$('i_opomba').value = '';
 }
 
 
@@ -127,15 +131,15 @@ function confirm(){
 		alert(MooTools.lang.get('msg','dispatcher.izberi_uporabnika_error'));
 		return;
 	}
-	if (isNaN($('kolicina').value)) {
+	if (isNaN($('i_kolicina').value)) {
 		alert(MooTools.lang.get('msg','dispatcher.izberi_kolicino_error'));
 		return;
 	}
-	if ($('datum').value == '') {
+	if ($('i_datum').value == '') {
 		alert(MooTools.lang.get('msg','dispatcher.izberi_datum_error'));
 		return;
 	}
-	var f = $('datum').value.split(".");
+	var f = $('i_datum').value.split(".");
 	var fr = new Date(f[2],f[1]-1,f[0]);
 	var frd = new Date(fr.getTime());
 	var t = new Date();
@@ -148,11 +152,11 @@ function confirm(){
 
 	var podatkiJSON = {};
 	podatkiJSON["stranka"] = $('selectStranka').value;
-	podatkiJSON["material"] = $('selectOdpadek').value;
+	podatkiJSON["material"] = $('selectMaterial').value;
 	podatkiJSON["narocil"] = $('selectNarocil').value;
-	podatkiJSON["datum"] = $('datum').value;
-	podatkiJSON["kolicina"] = $('kolicina').value;
-	podatkiJSON["opomba"] = $('opomba').value;
+	podatkiJSON["datum"] = $('i_datum').value;
+	podatkiJSON["kolicina"] = $('i_kolicina').value;
+	podatkiJSON["opomba"] = $('i_opomba').value;
 	var j = {};
 	j.confirmData = JSON.encode(podatkiJSON);		
 	
@@ -160,7 +164,9 @@ function confirm(){
 		method: 'get', 
 		url: 'confirm',
 		data: j,
-		'onSuccess':function(result){}
+		'onSuccess':function(result){
+			datagrid.refresh();
+		}
 	}).send();
 }
 
@@ -170,14 +176,14 @@ function tiskaj() {
 	var stranka = "";
 	if ($('selectStranka').selectedIndex != 0) 
 		stranka = $('selectStranka').options[$('selectStranka').selectedIndex].text;
-	var odpadek = "";
-	if ($('selectOdpadek').selectedIndex != 0) 
-		odpadek = $('selectOdpadek').options[$('selectOdpadek').selectedIndex].text;
+	var material = "";
+	if ($('selectMaterial').selectedIndex != 0) 
+		material = $('selectMaterial').options[$('selectMaterial').selectedIndex].text;
 	var narocil = "";
 	if ($('selectNarocil').selectedIndex != 0) 
 		narocil = $('selectNarocil').options[$('selectNarocil').selectedIndex].text;
 	
-	print_html = '<table>';
+	var print_html = '<table>';
 	print_html += 
 	'<tr>' +
 		'<td align="left">'+MooTools.lang.get('msg','dispatcher.stranka')+'</td>' +
@@ -185,43 +191,43 @@ function tiskaj() {
 	'</tr>' +
 	'<tr>' +
 		'<td align="left">'+MooTools.lang.get('msg','dispatcher.naslov')+'</td>' +
-		'<td align="left">'+$('naslov').value+'</td>' +
+		'<td align="left">'+$('i_naslov').value+'</td>' +
 	'</tr>' +
 	'<tr>' +
 		'<td align="left">'+MooTools.lang.get('msg','dispatcher.kraj')+'</td>' +
-		'<td align="left">'+$('kraj').value+'</td>' +
+		'<td align="left">'+$('i_kraj').value+'</td>' +
 	'</tr>' +
 	'<tr>' +
 		'<td align="left">'+MooTools.lang.get('msg','dispatcher.kontakt')+'</td>' +
-		'<td align="left">'+$('kontakt').value+'</td>' +
+		'<td align="left">'+$('i_kontakt').value+'</td>' +
 	'</tr>' +
 	'<tr>' +
 		'<td align="left">'+MooTools.lang.get('msg','dispatcher.telefon')+'</td>' +
-		'<td align="left">'+$('telefon').value+'</td>' +
+		'<td align="left">'+$('i_telefon').value+'</td>' +
 	'</tr>' +
 	'<tr>' +
 		'<td align="left">'+MooTools.lang.get('msg','dispatcher.kupec')+'</td>' +
-		'<td align="left">'+$('kupec').value+'</td>' +
+		'<td align="left">'+$('i_kupec').value+'</td>' +
 	'</tr>' +
 	'<tr>' +
 		'<td align="left">'+MooTools.lang.get('msg','dispatcher.datum')+'</td>' +
-		'<td align="left">'+$('datum').value+'</td>' +
+		'<td align="left">'+$('i_datum').value+'</td>' +
 	'</tr>' +
 	'<tr>' +
-		'<td align="left">'+MooTools.lang.get('msg','dispatcher.odpadek')+'</td>' +
-		'<td align="left">'+odpadek+'</td>' +
+		'<td align="left">'+MooTools.lang.get('msg','dispatcher.material')+'</td>' +
+		'<td align="left">'+material+'</td>' +
 	'</tr>' +
 	'<tr>' +
 		'<td align="left">'+MooTools.lang.get('msg','dispatcher.kolicina')+'</td>' +
-		'<td align="left">'+$('kolicina').value+'</td>' +
+		'<td align="left">'+$('i_kolicina').value+'</td>' +
 	'</tr>' +
 	'<tr>' +
 		'<td align="left">'+MooTools.lang.get('msg','dispatcher.osnovno')+'</td>' +
-		'<td align="left">'+$('osnovno').value+'</td>' +
+		'<td align="left">'+$('i_osnovno').value+'</td>' +
 	'</tr>' +
 	'<tr>' +
 		'<td align="left">'+MooTools.lang.get('msg','dispatcher.opomba')+'</td>' +
-		'<td align="left">'+$('opomba').value+'</td>' +
+		'<td align="left">'+$('i_opomba').value+'</td>' +
 	'</tr>' +
 	'<tr>' +
 		'<td align="left">'+MooTools.lang.get('msg','dispatcher.narocil')+'</td>' +
@@ -235,6 +241,47 @@ function tiskaj() {
     $('listForms').submit();	
 }
 
+function xml() {
+	
+	var stranka = "";
+	if ($('selectStranka').selectedIndex != 0) 
+		stranka = $('selectStranka').options[$('selectStranka').selectedIndex].text;
+	var material = "";
+	if ($('selectMaterial').selectedIndex != 0) 
+		material = $('selectMaterial').options[$('selectMaterial').selectedIndex].text;
+	var narocil = "";
+	if ($('selectNarocil').selectedIndex != 0) 
+		narocil = $('selectNarocil').options[$('selectNarocil').selectedIndex].text;
+	
+	var xml_vsebina = '<?xml version="1.0" encoding="UTF-8"?>\n' +
+	'<narocilo>\n' +
+	'	<stranka>\n' +
+	'		<sif_str>'+$('selectStranka').value+'</sif_str>\n' +
+	'		<naziv>'+stranka.substr(0,stranka.indexOf(";"))+'</naziv>\n' +
+	'		<naslov>'+$('i_naslov').value+'</naslov>\n' +
+	'		<kraj>'+$('i_kraj').value+'</kraj>\n' +
+	'		<kontakt>'+$('i_kontakt').value+'</kontakt>\n' +
+	'		<telefon>'+$('i_telefon').value+'</telefon>\n' +
+	'		<kupec>'+$('i_kupec').value+'</kupec>\n' +
+	'	</stranka>\n' +
+	'	<datum>'+$('i_datum').value+'</datum>\n' +
+	'	<material>\n'+
+	'		<koda>'+$('selectMaterial').value+'</koda>\n' +
+	'		<naziv>'+material+'</naziv>\n' +
+	'	</material>\n' +
+	'	<kolicina>'+$('i_kolicina').value+'</kolicina>\n' +
+	'	<osnovno>'+$('i_osnovno').value+'</osnovno>\n' +
+	'	<opomba>'+$('i_opomba').value+'</opomba>\n' +
+	'	<narocil>\n'+
+	'		<sif_upor>'+$('selectNarocil').value+'</sif_upor>\n' +
+	'		<ime_in_priimek>'+narocil+'</ime_in_priimek>\n' +
+	'	</narocil>\n' +
+	'</narocilo>';
+    
+	$('form_html').value=xml_vsebina;
+	$('listForms').action = Hydra.pageContext+"/xml";
+    $('listForms').submit();	
+}
 
 
 function addSubjects() {
@@ -249,13 +296,13 @@ function changeSubject() {
 	var selectStranka = $('selectStranka').value;
 	for (var ii=0;ii<subjectOption.length;ii++) {
 		if (subjectOption[ii]['sifra'] == selectStranka) {
-			$('naslov').value = subjectOption[ii]['naslov'];
-			$('kraj').value = subjectOption[ii]['posta']+" "+subjectOption[ii]['kraj'];
-			$('kontakt').value = subjectOption[ii]['kont_os'];
-			$('telefon').value = subjectOption[ii]['telefon'];
-			$('kupec').value = subjectOption[ii]['kupec'];
-			$('osnovno').value = subjectOption[ii]['osnovna'];
-			$('opomba').value = subjectOption[ii]['opomba'];
+			$('i_naslov').value = subjectOption[ii]['naslov'];
+			$('i_kraj').value = subjectOption[ii]['posta']+" "+subjectOption[ii]['kraj'];
+			$('i_kontakt').value = subjectOption[ii]['kont_os'];
+			$('i_telefon').value = subjectOption[ii]['telefon'];
+			$('i_kupec').value = subjectOption[ii]['kupec'];
+			$('i_osnovno').value = subjectOption[ii]['osnovna'];
+			$('i_opomba').value = subjectOption[ii]['opomba'];
 		}
 	}
 }
@@ -265,7 +312,7 @@ function addMaterials() {
 	for (var ii=0;ii<materialsOption.length;ii++) {
 		materialsOptionData += '<option value='+materialsOption[ii]['koda']+'>'+materialsOption[ii]['koda']+" "+materialsOption[ii]['material']+'</option>';
 	}
-	$('selectOdpadek').set('html', materialsOptionData);
+	$('selectMaterial').set('html', materialsOptionData);
 }
 
 function addUsers() {
@@ -283,75 +330,66 @@ function addUsers() {
 
 var cmu = [
         {
-           dataIndex: 'dobavitelj',
+           dataIndex: 'st_dob',
            dataType:'string',
-           width:200
+           width:60
         },
         {
-           dataIndex: 'naslov',
+           dataIndex: 'datum',
            dataType:'string',
-           width:200
+           width:100
         },
         {
-           dataIndex: 'narocilo',
+           dataIndex: 'stranka',
            dataType:'string',
-           width:80
+           width:300
         },
         {
-            dataIndex: 'evl',
+            dataIndex: 'kupec',
             dataType:'string',
-            width:80
+            width:300
          },
         {
-           dataIndex: 'datum_narocila',
+           dataIndex: 'material',
            dataType:'string',
-           width:100
-        },
-        {
-           dataIndex: 'datum_izvedbe',
-           dataType:'string',
-           width:100
-        },
-        {
-           dataIndex: 'vrsta_odpadka',
-           dataType:'string',
-           width:200
-        },
-        {
-           dataIndex: 'klasifikacijska_stevilka',
-           dataType:'string',
-           width:100
+           width:300
         },
         {
            dataIndex: 'kolicina',
            dataType:'string',
-           width:50
-        },
-        {
-           dataIndex: 'placnik',
-           dataType:'string',
-           width:150
-        },
-        {
-           dataIndex: 'kontakt',
-           dataType:'string',
-           width:100
+           width:60
         },
         {
            dataIndex: 'opomba',
-           dataType:'string'
+           dataType:'string',
+           width:300
         },
         {
-           dataIndex: 'vozilo',
+           dataIndex: 'narocil',
            dataType:'string',
-           width:200
+           width:150
         }];	
+
+
+var options = {
+		//upload only one file
+		limit: 1,
+		//upload in this element
+		container: 'upload',
+		//allowed file type
+		filetype: 'xml',
+		//transfer aborted
+		onAbort: function () {
+			alert('Unauthorized file type, allowed file type are "' + this.options.filetype + '"')
+		},
+		onSuccess: function () { alert('Transfer completed succesfully!') }
+	};
 
 window.addEvent("domready", function(){
                 
     datagrid = new omniGrid('myTableGrid', {
         columnModel: cmu,
-        //url:"dispatcher-table",
+        url:"orders_table",
         perPageOptions: [10,20,50,100,200],
         perPage:10,
         page:1,
@@ -362,14 +400,50 @@ window.addEvent("domready", function(){
         resizeColumns:true,
         multipleSelection:true,
         serverSort:true,
-        sortOn: 'Status_sort, DocumentID',
+        sortOn: 'datum desc, st_dob',
 		sortBy: 'ASC',
 		sortOrder: 0,
-		height: 500
+		height: 400
     });
     
     //datagrid.addEvent('click', onGridSelect);
     
     initComponents(getLanguage());
+    
+    //upload();
     		
  });
+
+
+
+function upload() {
+	//add click listener on the link
+	document.id('upload').addEvent('click', function (e) {
+		e.stop();
+		//create upload field
+		uploadManager.upload(options);
+	}).
+	//check submit form
+	getParent('form').addEvent('submit', function (e) {
+		e.stop();
+		//transfer instances
+		var transfers = uploadManager.getTransfers('upload');
+		//user have not uploaded a file
+		if(transfers.length == 0) {
+			alert('Please select a file to upload');
+			return
+		}
+		//check we have ungoing transfers
+		if(transfers.some(function (instance) { return instance.state == 1; })) {
+			alert('there are some pending queries, please wait until it completes, the try again');
+			return
+		}
+		//check all transfers have completed
+		if(!transfers.every(function (instance) { return instance.complete;})) {
+			alert('some tranfers may have failed. please try again');
+			return
+		}
+		//this.submit()			
+	});
+}
+
