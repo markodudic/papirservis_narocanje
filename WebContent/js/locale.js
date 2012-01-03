@@ -51,6 +51,7 @@ MooTools.lang.set('sl-SL', 'msg', {'header.language': 'Izberite jezik: ',
 	'dispatcher.potrdi': 'Potrdi',
 	'dispatcher.preklici': 'Prekli\u010Di',
 	'dispatcher.ponastavi': 'Ponastavi',
+	'dispatcher.napacna_stranka': 'Za to stranko nimate pravice dodjanja naro\u010Dila.',
 
 	
 	'datepicker.format': 'dd.mm.yyyy',
@@ -65,5 +66,6 @@ MooTools.lang.set('sl-SL', 'msg', {'header.language': 'Izberite jezik: ',
 	'error.ta_forma_je_poimenska': 'Obrazec je poimenski in ga ni mogu\u010De izpolniti',
 	'error.forma_ne_obstaja': 'Obrazec ne obstaja',
 	'error.url_ne_obstaja': 'Ta URL ne obstaja',
-	'error.obrazec_ni_aktiven': 'Ta obrazec ni aktiven in ga ni mogo\u010De izpolniti'});
+	'error.obrazec_ni_aktiven': 'Ta obrazec ni aktiven in ga ni mogo\u010De izpolniti',
+	'error.file_format': 'Napa\u010Den format datoteke. Format mora biti xml!'});
 

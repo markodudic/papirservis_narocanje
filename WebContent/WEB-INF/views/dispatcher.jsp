@@ -27,8 +27,6 @@ if (login == null || !login.equals("0")) {
 	<script type="text/javascript" src="jslib/slimpicker.js"></script>
 	<link rel="stylesheet" media="screen" href="css/omnigrid.css" type="text/css" />
 	<script type="text/javascript" src="jslib/omnigrid.js"></script>
-	<script type="text/javascript" src="jslib/progressbar.js"></script>
-	<script type="text/javascript" src="jslib/upload.js"></script>
 	
 	
 </head>
@@ -36,14 +34,11 @@ if (login == null || !login.equals("0")) {
 	<jsp:include page="_header.jsp"/>
 	<h5 id="vnos"></h5>
 	<div id='toolbar'>
-		<!-- button type="button"></button-->
 	</div>
-	<!-- form action="" method="get">
-		<a href="#">Upload a picture of you:</a>
-		<div id="upload"></div>
-		<input type="submit" value="submit"/>
-	</form -->
-	
+
+
+
+
 	<form id="listForms" action="" method="post" target="">
 		<input type="hidden" id="ReportName" name="ReportName" value=""/>
 		<input id='form_html' name='form_html' type="hidden" />
