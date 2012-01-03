@@ -30,10 +30,10 @@ function initComponents(lang) {
 	
 	
 	
-	$('toolbar').set('id','_old_toolbar');
-	tlb = new Element('div').set('id','toolbar');
-	tlb.inject($('_old_toolbar'),'after');
-	$('_old_toolbar').destroy();
+	//$('toolbar').set('id','_old_toolbar');
+	//tlb = new Element('div').set('id','toolbar');
+	//tlb.inject($('_old_toolbar'),'after');
+	//$('_old_toolbar').destroy();
 
 	var tb = new Jx.Toolbar();
 	tb.addTo('toolbar');
@@ -57,18 +57,51 @@ function initComponents(lang) {
 	});
 	pdfBtn.addTo('toolbar');
 	var xmlBtn = new Jx.Button({
+		id: "ifile",
 		label: MooTools.lang.get('msg','dispatcher.xml'),
 		image: Hydra.pageContext+'/img/fileicons/xml.png',
 		onClick:function(){xml();}
 	});
 	xmlBtn.addTo('toolbar');
-	var xmlBtn2 = new Jx.Button({
-		label: MooTools.lang.get('msg','dispatcher.xml2'),
-		image: Hydra.pageContext+'/img/fileicons/xml.png',
-		onClick:function(){xml();}
-	});
-	xmlBtn2.addTo('toolbar');
+
+	fileinputs = new Element('div').set('id','fileinputs');
+	fileinputs.inject($('ifile'),'after');
+
+	files = new Element('input').set('id','files');
+	files.set('type','file');
+	files.inject($('fileinputs'));
 	
+	//var xmlBtn2 = new Jx.Button({
+	//	id: "ifile2",
+	//	label: MooTools.lang.get('msg','dispatcher.xml2'),
+	//	image: Hydra.pageContext+'/img/fileicons/xml.png'
+	//});
+	//xmlBtn2.addTo('toolbar');
+
+	fakefile  = new Element('div').set('id','fakefile');
+	fakefile .inject($('fileinputs'));
+
+	/*xmlBtn2 = new Element('input').set('id','xmlFile');
+	xmlBtn2.set('type','button');
+	xmlBtn2.set('label',MooTools.lang.get('msg','dispatcher.xml2'));
+	xmlBtn2.set('image',Hydra.pageContext+'/img/fileicons/xml.png');
+	xmlBtn2.set('class','JxButtonContainer');
+	xmlBtn2.inject($('fakefile'));
+*/
+	var xmlBtn2 = new Jx.Button({
+		id: "xmlFile",
+		label: MooTools.lang.get('msg','dispatcher.xml2'),
+		image: Hydra.pageContext+'/img/fileicons/xml.png'
+	});
+	xmlBtn2.addTo('fakefile');
+
+	
+	ffile = new Element('input').set('id','ffile');
+	ffile.set('type','text');
+	ffile.inject($('xmlFile'),'after');
+
+	
+	//$('fileImage').src = Hydra.pageContext+'/img/fileicons/xml.png';
 	
 	// texti
 	$('vnos').set('html',MooTools.lang.get('msg','dispatcher.vnos'));
@@ -371,20 +404,6 @@ var cmu = [
         }];	
 
 
-var options = {
-		//upload only one file
-		limit: 1,
-		//upload in this element
-		container: 'upload',
-		//allowed file type
-		filetype: 'xml',
-		//transfer aborted
-		onAbort: function () {
-			alert('Unauthorized file type, allowed file type are "' + this.options.filetype + '"')
-		},
-		onSuccess: function () { alert('Transfer completed succesfully!') }
-	};
-
 window.addEvent("domready", function(){
                 
     datagrid = new omniGrid('myTableGrid', {
@@ -409,41 +428,48 @@ window.addEvent("domready", function(){
     //datagrid.addEvent('click', onGridSelect);
     
     initComponents(getLanguage());
-    
-    //upload();
-    		
+    document.getElementById('files').addEventListener('change', handleFileSelect, false);
  });
 
 
 
-function upload() {
-	//add click listener on the link
-	document.id('upload').addEvent('click', function (e) {
-		e.stop();
-		//create upload field
-		uploadManager.upload(options);
-	}).
-	//check submit form
-	getParent('form').addEvent('submit', function (e) {
-		e.stop();
-		//transfer instances
-		var transfers = uploadManager.getTransfers('upload');
-		//user have not uploaded a file
-		if(transfers.length == 0) {
-			alert('Please select a file to upload');
-			return
-		}
-		//check we have ungoing transfers
-		if(transfers.some(function (instance) { return instance.state == 1; })) {
-			alert('there are some pending queries, please wait until it completes, the try again');
-			return
-		}
-		//check all transfers have completed
-		if(!transfers.every(function (instance) { return instance.complete;})) {
-			alert('some tranfers may have failed. please try again');
-			return
-		}
-		//this.submit()			
-	});
-}
+function handleFileSelect(evt) {
+	var files = evt.target.files; // FileList object
 
+	var f = files[0];
+    if (!f.type.match('xml.*')) {
+   	  alert(MooTools.lang.get('msg','error.file_format'));
+   	  return;
+    }
+
+    
+    var reader = new FileReader();
+    // Closure to capture the file information.
+    reader.onload = (function(theFile) {
+      return function(e) {
+    	$('ffile').value = theFile.name;
+    	var xml = e.target.result;
+        // Render xml
+      	var parser=new DOMParser();
+        var xmlDoc=parser.parseFromString(xml,"text/xml");
+        
+        $('selectStranka').value = xmlDoc.getElementsByTagName("sif_str")[0].childNodes[0].nodeValue; 	
+    	if ($('selectStranka').value == -1) {
+    		alert(MooTools.lang.get('msg','dispatcher.napacna_stranka'));
+    		return;
+    	}
+        changeSubject();
+        $('selectMaterial').value = xmlDoc.getElementsByTagName("koda")[0].childNodes[0].nodeValue; 	
+        $('selectNarocil').value = xmlDoc.getElementsByTagName("sif_upor")[0].childNodes[0].nodeValue; 	
+    	$('i_datum').value = xmlDoc.getElementsByTagName("datum")[0].childNodes[0].nodeValue;
+    	$('i_kolicina').value = xmlDoc.getElementsByTagName("kolicina")[0].childNodes[0].nodeValue;
+    	$('i_opomba').value = xmlDoc.getElementsByTagName("opomba")[0].childNodes[0].nodeValue;
+        
+        
+      };
+    })(f);
+
+    var xml = reader.readAsText(f);
+  }
+
+  
