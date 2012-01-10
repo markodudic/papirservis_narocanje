@@ -8,3 +8,7 @@ update uporabniki set narocila = 1;
 ALTER TABLE `dob2012`  ADD COLUMN `stev_km_norm` INT(11) NULL DEFAULT '0' AFTER `stev_ur_sled`,  ADD COLUMN `stev_ur_norm` DOUBLE NULL DEFAULT '0' AFTER `stev_km_norm`;
 ALTER TABLE `dob2013`  ADD COLUMN `stev_km_norm` INT(11) NULL DEFAULT '0' AFTER `stev_ur_sled`,  ADD COLUMN `stev_ur_norm` DOUBLE NULL DEFAULT '0' AFTER `stev_km_norm`;
 ALTER TABLE `stranke`  ADD COLUMN `stev_km_norm` INT(11) NULL DEFAULT '0' AFTER `vtez`,  ADD COLUMN `stev_ur_norm` DOUBLE NULL DEFAULT '0' AFTER `stev_km_norm`;
+
+
+ALTER TABLE `dob2012`  ADD COLUMN `error` INT(1) NULL DEFAULT '0' AFTER `stev_ur_norm`;
+ALTER TABLE `dob2013`  ADD COLUMN `error` INT(1) NULL DEFAULT '0' AFTER `stev_ur_norm`;

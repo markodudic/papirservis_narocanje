@@ -211,8 +211,8 @@ public class DispatcherStoredProcedureDaoImpl implements DispatcherStoredProcedu
 				"left join uporabniki on (dob" + year + ".uporabnik = uporabniki.sif_upor) " +			      
 				"where obdelana = 0 and " +
 				"    (((kupci.sif_kupca = ?) and (?=1)) OR (?=2)) " +
-				"order by ? ?",
-	    		new Object[]{sif_kupca,narocila,narocila,sortString,sortType},
+				"order by " + sortString + " " + sortType,
+	    		new Object[]{sif_kupca,narocila,narocila},
 	    		new OrdersMapper());
 	}
 	
@@ -221,6 +221,7 @@ public class DispatcherStoredProcedureDaoImpl implements DispatcherStoredProcedu
 
 		public Object mapRow(ResultSet rs, int rowNum) throws SQLException {
 			Order order = new Order();
+					
 			order.setStDob(rs.getString("st_dob"));
 			order.setDatum(rs.getString("datum"));
 			order.setStranka(rs.getString("stranka"));
