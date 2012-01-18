@@ -1,7 +1,7 @@
 var subjectOption = '';
 var materialsOption = '';
 var usersOption = '';
-
+var fileAPIEnabled = true;
 
 
 function initComponents(lang) {
@@ -56,52 +56,38 @@ function initComponents(lang) {
 		onClick:function(){tiskaj();}
 	});
 	pdfBtn.addTo('toolbar');
-	var xmlBtn = new Jx.Button({
-		id: "ifile",
-		label: MooTools.lang.get('msg','dispatcher.xml'),
-		image: Hydra.pageContext+'/img/fileicons/xml.png',
-		onClick:function(){xml();}
-	});
-	xmlBtn.addTo('toolbar');
-
-	fileinputs = new Element('div').set('id','fileinputs');
-	fileinputs.inject($('ifile'),'after');
-
-	files = new Element('input').set('id','files');
-	files.set('type','file');
-	files.inject($('fileinputs'));
+	if (fileAPIEnabled) {
+		var xmlBtn = new Jx.Button({
+			id: "ifile",
+			label: MooTools.lang.get('msg','dispatcher.xml'),
+			image: Hydra.pageContext+'/img/fileicons/xml.png',
+			onClick:function(){xml();}
+		});
+		xmlBtn.addTo('toolbar');
 	
-	//var xmlBtn2 = new Jx.Button({
-	//	id: "ifile2",
-	//	label: MooTools.lang.get('msg','dispatcher.xml2'),
-	//	image: Hydra.pageContext+'/img/fileicons/xml.png'
-	//});
-	//xmlBtn2.addTo('toolbar');
-
-	fakefile  = new Element('div').set('id','fakefile');
-	fakefile .inject($('fileinputs'));
-
-	/*xmlBtn2 = new Element('input').set('id','xmlFile');
-	xmlBtn2.set('type','button');
-	xmlBtn2.set('label',MooTools.lang.get('msg','dispatcher.xml2'));
-	xmlBtn2.set('image',Hydra.pageContext+'/img/fileicons/xml.png');
-	xmlBtn2.set('class','JxButtonContainer');
-	xmlBtn2.inject($('fakefile'));
-*/
-	var xmlBtn2 = new Jx.Button({
-		id: "xmlFile",
-		label: MooTools.lang.get('msg','dispatcher.xml2'),
-		image: Hydra.pageContext+'/img/fileicons/xml.png'
-	});
-	xmlBtn2.addTo('fakefile');
-
+		fileinputs = new Element('div').set('id','fileinputs');
+		fileinputs.inject($('ifile'),'after');
 	
-	ffile = new Element('input').set('id','ffile');
-	ffile.set('type','text');
-	ffile.inject($('xmlFile'),'after');
-
+		files = new Element('input').set('id','files');
+		files.set('type','file');
+		files.inject($('fileinputs'));
+		
+		fakefile  = new Element('div').set('id','fakefile');
+		fakefile .inject($('fileinputs'));
 	
-	//$('fileImage').src = Hydra.pageContext+'/img/fileicons/xml.png';
+		var xmlBtn2 = new Jx.Button({
+			id: "xmlFile",
+			label: MooTools.lang.get('msg','dispatcher.xml2'),
+			image: Hydra.pageContext+'/img/fileicons/xml.png'
+		});
+		xmlBtn2.addTo('fakefile');
+	
+		
+		ffile = new Element('input').set('id','ffile');
+		ffile.set('type','text');
+		ffile.inject($('xmlFile'),'after');
+	}
+	
 	
 	// texti
 	$('vnos').set('html',MooTools.lang.get('msg','dispatcher.vnos'));
@@ -427,8 +413,17 @@ window.addEvent("domready", function(){
     
     //datagrid.addEvent('click', onGridSelect);
     
+    if (window.File && window.FileReader && window.FileList && window.Blob) {
+    	//Great success! All the File APIs are supported.
+    } else {
+    	  alert('The File APIs are not fully supported in this browser.');
+    	  fileAPIEnabled = false;
+    }
+
     initComponents(getLanguage());
-    document.getElementById('files').addEventListener('change', handleFileSelect, false);
+    
+    if (fileAPIEnabled)
+    	document.getElementById('files').addEventListener('change', handleFileSelect, false);
  });
 
 
