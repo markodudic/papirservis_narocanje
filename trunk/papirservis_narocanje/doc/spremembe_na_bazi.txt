@@ -18,3 +18,20 @@ ALTER TABLE `enote`  CHANGE COLUMN `x_koord` `x_koord` DOUBLE(10,8) NULL DEFAULT
 ALTER TABLE `enote`  CHANGE COLUMN `y_koord` `y_koord` DOUBLE(10,8) NULL DEFAULT NULL AFTER `x_koord`;
 
 ALTER TABLE `stranke`  CHANGE COLUMN `x_koord` `x_koord` DOUBLE(10,8) NULL DEFAULT NULL AFTER `veljavnost`,  CHANGE COLUMN `y_koord` `y_koord` DOUBLE(10,8) NULL DEFAULT NULL AFTER `x_koord`;
+
+ALTER TABLE `dob2012`
+	ADD INDEX `stev_km_sled` (`stev_km_sled`),
+	ADD INDEX `stev_ur_sled` (`stev_ur_sled`),
+	ADD INDEX `error` (`error`),
+	ADD INDEX `datum` (`datum`);
+
+	
+ALTER TABLE `dob2013`
+	ADD INDEX `stev_km_sled` (`stev_km_sled`),
+	ADD INDEX `stev_ur_sled` (`stev_ur_sled`),
+	ADD INDEX `error` (`error`),
+	ADD INDEX `datum` (`datum`);
+
+ALTER TABLE `stranke`
+	ADD INDEX `x_koord` (`x_koord`),
+	ADD INDEX `y_koord` (`y_koord`);	
