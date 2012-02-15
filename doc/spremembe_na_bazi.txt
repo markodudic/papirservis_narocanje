@@ -13,9 +13,23 @@ ALTER TABLE `stranke`  ADD COLUMN `stev_km_norm` INT(11) NULL DEFAULT '0' AFTER 
 ALTER TABLE `dob2012`  ADD COLUMN `error` INT(1) NULL DEFAULT '0' AFTER `stev_ur_norm`;
 ALTER TABLE `dob2013`  ADD COLUMN `error` INT(1) NULL DEFAULT '0' AFTER `stev_ur_norm`;
 
+ALTER TABLE `dob2012`  CHANGE COLUMN `stev_km_sled` `stev_km_sled` INT(11) NULL DEFAULT NULL AFTER `dod_stroski`,  CHANGE COLUMN `stev_ur_sled` `stev_ur_sled` DOUBLE NULL DEFAULT NULL AFTER `stev_km_sled`;
+
 
 ALTER TABLE `enote`  CHANGE COLUMN `x_koord` `x_koord` DOUBLE(10,8) NULL DEFAULT NULL AFTER `dovoljenje`;
 ALTER TABLE `enote`  CHANGE COLUMN `y_koord` `y_koord` DOUBLE(10,8) NULL DEFAULT NULL AFTER `x_koord`;
+
+
+ALTER TABLE `stranke`  CHANGE COLUMN `x_koord` `x_koord` DOUBLE(10,8) NULL DEFAULT NULL AFTER `veljavnost`,  CHANGE COLUMN `y_koord` `y_koord` DOUBLE(10,8) NULL DEFAULT NULL AFTER `x_koord`;
+
+//določanje strank
+select stranke.sif_str, stranke.naziv, stranke.naslov, stranke.posta, stranke.kraj, skup.tekst, enote.naziv 
+from stranke 
+left join kupci on stranke.sif_kupca = kupci.sif_kupca
+left join skup on (kupci.skupina = skup.skupina)
+left join enote on (kupci.sif_enote = enote.sif_enote)
+order by stranke.naziv
+
 
 ALTER TABLE `stranke`  CHANGE COLUMN `x_koord` `x_koord` DOUBLE(10,8) NULL DEFAULT NULL AFTER `veljavnost`,  CHANGE COLUMN `y_koord` `y_koord` DOUBLE(10,8) NULL DEFAULT NULL AFTER `x_koord`;
 
@@ -34,4 +48,17 @@ ALTER TABLE `dob2013`
 
 ALTER TABLE `stranke`
 	ADD INDEX `x_koord` (`x_koord`),
-	ADD INDEX `y_koord` (`y_koord`);	
+	ADD INDEX `y_koord` (`y_koord`);
+	
+
+ALTER TABLE `dob2012`  ADD COLUMN `sofer_sled` VARCHAR(50) NULL DEFAULT '0' AFTER `stev_ur_sled`;
+ALTER TABLE `dob2013`  ADD COLUMN `sofer_sled` VARCHAR(50) NULL DEFAULT '0' AFTER `stev_ur_sled`;
+
+ALTER TABLE `sofer`  ADD COLUMN `kljuc` VARCHAR(50) NULL AFTER `ure`;
+ALTER TABLE `sofer`  ADD INDEX `kljuc` (`kljuc`);
+
+ALTER TABLE `dob2012`  ADD INDEX `sofer_sled` (`sofer_sled`);
+ALTER TABLE `dob2013`  ADD INDEX `sofer_sled` (`sofer_sled`);
+
+ALTER TABLE `dob2012`  ADD CONSTRAINT `dob2013_sofer_kljuc_fk` FOREIGN KEY (`sofer_sled`) REFERENCES `sofer` (`kljuc`) ON UPDATE NO ACTION ON DELETE NO ACTION;
+ALTER TABLE `dob2013`  ADD CONSTRAINT `dob2013_sofer_kljuc_fk` FOREIGN KEY (`sofer_sled`) REFERENCES `sofer` (`kljuc`) ON UPDATE NO ACTION ON DELETE NO ACTION;
