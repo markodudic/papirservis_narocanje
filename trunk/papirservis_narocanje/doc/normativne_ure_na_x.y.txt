@@ -1,0 +1,30 @@
+select stev_ur_norm, floor(stev_ur_norm/60) + if(stev_ur_norm/60 - floor(stev_ur_norm/60) < 0.5, 0, 0.5) 
+from stranke;
+
+
+
+update stranke 
+set stev_ur_norm = floor(stev_ur_norm/60) + if(stev_ur_norm/60 - floor(stev_ur_norm/60) < 0.5, 0, 0.5);
+
+update stranke 
+set stev_ur_norm = concat(floor(stev_ur_norm/60),'.',if(mod(stev_ur_norm,60)<10, concat(0,mod(stev_ur_norm,60)), mod(stev_ur_norm,60)))
+
+
+
+
+update dob2012
+set stev_km_norm = (select max(stev_km_norm) from stranke where sif_str = dob2012.sif_str),
+	stev_ur_norm = (select max(stev_ur_norm) from stranke where sif_str = dob2012.sif_str)
+where pozicija = 1
+
+
+
+SELECT stranke.sif_str, stranke.naziv, stranke.naslov, stranke.posta, stranke.kraj, skup.tekst, enote.naziv
+from stranke 
+left join kupci on (stranke.sif_kupca = kupci.sif_kupca)
+left join enote on (enote.sif_enote = kupci.sif_enote)
+left join skup on (skup.skupina = kupci.skupina),
+(select max(id) as id, sif_str
+from stranke
+group by sif_str) as s
+where stranke.id in (s.id)
