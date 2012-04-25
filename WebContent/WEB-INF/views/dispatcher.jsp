@@ -59,15 +59,18 @@ if (login == null || !login.equals("0")) {
 					<td id="td_search"><label id="l_kolicina"></label></td><td id="td_search"><input type="text" id="i_kolicina" value="" /></td>
 				</tr>
 				<tr id="tr_search">
-					<td id="td_search"><label id="l_kontakt"></label></td><td id="td_search"><input type="text" id="i_kontakt" value="" readonly /></td>
+					<td id="td_search"><label id="l_kontakt"></label></td><td id="td_search"><input type="text" id="i_kontakt" value="" /></td>
 					<td id="td_search"><label id="l_osnovno"></label></td><td id="td_search"><input type="text" id="i_osnovno" value="" readonly /></select></td>
 				</tr>
 				<tr id="tr_search">
-					<td id="td_search"><label id="l_telefon"></label></td><td id="td_search"><input type="text" id="i_telefon" value="" readonly /></td>
-					<td id="td_search"><label id="l_opomba"></label></td><td id="td_search"><input type="text" id="i_opomba" value="" /></td>
+					<td id="td_search"><label id="l_telefon"></label></td><td id="td_search"><input type="text" id="i_telefon" value="" /></td>
+					<td id="td_search" rowspan="2"><label id="l_opomba"></label></td><td id="td_search" rowspan="2"><textarea rows="2" id="i_opomba"></textarea></td>
 				</tr>
 				<tr id="tr_search">
 					<td id="td_search"><label id="l_kupec"></label></td><td id="td_search"><input type="text" id="i_kupec" value="" readonly /></td>
+				</tr>
+				<tr id="tr_search">
+					<td id="td_search"><label id="l_potnik"></label></td><td id="td_search"><input type="text" id="i_potnik" value="" readonly /></td>
 					<td id="td_search"><label id="l_narocil"></label></td><td id="td_search"><select id="selectNarocil" ></select></td>
 				</tr>
 			</table>

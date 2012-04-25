@@ -65,6 +65,10 @@ public class Subject {
 	@Size(min = 1, max = 255)
 	private String opomba;
 
+	@NotNull
+	@Size(min = 1, max = 255)
+	private String potnik;
+
 	
 	public String getSifra() {
 		return sifra;
@@ -160,6 +164,14 @@ public class Subject {
 
 	public void setOpomba(String opomba) {
 		this.opomba = opomba;
+	}
+
+	public String getPotnik() {
+		return potnik;
+	}
+
+	public void setPotnik(String potnik) {
+		this.potnik = potnik;
 	}
 
 	

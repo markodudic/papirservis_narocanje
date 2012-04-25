@@ -63,7 +63,7 @@ public class DispatcherStoredProcedureDaoImpl implements DispatcherStoredProcedu
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public Collection GetSubjects(String sif_kupca, String narocila) {	
 		return this.jdbcTemplate.query( 
-	    		"SELECT sif_str, s.naziv, s.naslov, s.posta, s.kraj, telefon, kont_os, s.opomba, osnovna, kol_os, k.naziv kupec, sk.tekst " +
+	    		"SELECT sif_str, s.naziv, s.naslov, s.posta, s.kraj, telefon, kont_os, s.opomba, osnovna, kol_os, k.naziv kupec, potnik.ime_in_priimek as potnik, sk.tekst " +
 				"FROM (SELECT stranke.*  " +
 				"	FROM stranke, (SELECT sif_str, max(zacetek) datum FROM stranke group by sif_str ) zadnji " + 
 				"	WHERE stranke.sif_str = zadnji.sif_str and  " +
@@ -72,7 +72,8 @@ public class DispatcherStoredProcedureDaoImpl implements DispatcherStoredProcedu
 				"		FROM osnovna, (SELECT sif_os, max(zacetek) datum FROM osnovna group by sif_os ) zadnji1 " + 
 				"		WHERE osnovna.sif_os = zadnji1.sif_os and  " +
 				"		      osnovna.zacetek = zadnji1.datum) o,  " +
-				"	kupci k, skup sk   " +
+				"	skup sk, kupci k   " +
+				"left join uporabniki as potnik on (k.potnik = potnik.sif_upor) " +			      
 				"where s.sif_os = o.sif_os and k.sif_kupca = s.sif_kupca and " +  
 				"	k.skupina = sk.skupina  and k.blokada = 0  and " +
 				"	(((k.sif_kupca = ?) and (?=1)) OR (?=2)) " +
@@ -92,6 +93,7 @@ public class DispatcherStoredProcedureDaoImpl implements DispatcherStoredProcedu
 	        subject.setKontOseba(rs.getString("kont_os"));
 	        subject.setKraj(rs.getString("kraj"));
 	        subject.setKupec(rs.getString("kupec"));
+	        subject.setPotnik(rs.getString("potnik"));
 	        subject.setNaslov(rs.getString("naslov"));
 	        subject.setOsnovna(rs.getString("osnovna"));
 	        subject.setPosta(rs.getString("posta"));
@@ -201,14 +203,15 @@ public class DispatcherStoredProcedureDaoImpl implements DispatcherStoredProcedu
 		int year = toDay.get(Calendar.YEAR);
 		
 	    return this.jdbcTemplate.query( 
-	    		"select st_dob, DATE_FORMAT(dob" + year + ".datum, '%d.%m.%Y') as datum, stranka, kupci.naziv as kupec, material, kolicina, dob" + year + ".opomba as opomba, uporabniki.ime_in_priimek as narocil " +
+	    		"select st_dob, DATE_FORMAT(dob" + year + ".datum, '%d.%m.%Y') as datum, stranka, kupci.naziv as kupec, potnik.ime_in_priimek as potnik, material, kolicina, dob" + year + ".opomba as opomba, upor.ime_in_priimek as narocil " +
 				"from dob" + year + " " +
 				"left join kupci on (dob" + year + ".sif_kupca = kupci.sif_kupca) " +
 				"left join (SELECT materiali.*   " +
 				"				FROM materiali, (SELECT koda, max(zacetek) datum FROM materiali group by koda ) zadnji1 " + 
 				"					WHERE materiali.koda = zadnji1.koda and   " +
 				"					      materiali.zacetek = zadnji1.datum) as m on (dob" + year + ".koda = m.koda) " +
-				"left join uporabniki on (dob" + year + ".uporabnik = uporabniki.sif_upor) " +			      
+				"left join uporabniki as upor on (dob" + year + ".uporabnik = upor.sif_upor) " +			      
+				"left join uporabniki as potnik on (kupci.potnik = potnik.sif_upor) " +			      
 				"where obdelana = 0 and " +
 				"    (((kupci.sif_kupca = ?) and (?=1)) OR (?=2)) " +
 				"order by " + sortString + " " + sortType,
@@ -230,6 +233,7 @@ public class DispatcherStoredProcedureDaoImpl implements DispatcherStoredProcedu
 			order.setKolicina(rs.getString("kolicina"));
 			order.setOpomba(rs.getString("opomba"));
 			order.setNarocil(rs.getString("narocil"));
+			order.setPotnik(rs.getString("potnik"));
 			return order;
 		}
 	}
