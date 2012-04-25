@@ -98,6 +98,7 @@ function initComponents(lang) {
 	$('l_kontakt').set('html',MooTools.lang.get('msg','dispatcher.kontakt'));
 	$('l_telefon').set('html',MooTools.lang.get('msg','dispatcher.telefon'));
 	$('l_kupec').set('html',MooTools.lang.get('msg','dispatcher.kupec'));
+	$('l_potnik').set('html',MooTools.lang.get('msg','dispatcher.potnik'));
 
 	$('l_datum').set('html',MooTools.lang.get('msg','dispatcher.datum'));
 	$('l_material').set('html',MooTools.lang.get('msg','dispatcher.material'));
@@ -107,7 +108,7 @@ function initComponents(lang) {
 	$('l_narocil').set('html',MooTools.lang.get('msg','dispatcher.narocil'));
 
 		
-	var lfs = ['st_dob','datum','stranka','kupec','material','kolicina','opomba','narocil'];
+	var lfs = ['st_dob','datum','stranka','kupec','potnik','material','kolicina','opomba','narocil'];
 	for (var i = 0; i < lfs.length; i++) {
 		$(lfs[i]).set('html',MooTools.lang.get('msg','dispatcher.'+lfs[i]));
 	}
@@ -132,6 +133,7 @@ function reset () {
 	$('i_naslov').value = '';
 	$('i_kraj').value = '';
 	$('i_kontakt').value = '';
+	$('i_potnik').value = '';
 	$('i_telefon').value = '';
 	$('i_kupec').value = '';
 	$('i_osnovno').value = '';
@@ -229,6 +231,10 @@ function tiskaj() {
 		'<td align="left">'+$('i_kupec').value+'</td>' +
 	'</tr>' +
 	'<tr>' +
+		'<td align="left">'+MooTools.lang.get('msg','dispatcher.potnik')+'</td>' +
+		'<td align="left">'+$('i_potnik').value+'</td>' +
+	'</tr>' +
+	'<tr>' +
 		'<td align="left">'+MooTools.lang.get('msg','dispatcher.datum')+'</td>' +
 		'<td align="left">'+$('i_datum').value+'</td>' +
 	'</tr>' +
@@ -282,6 +288,7 @@ function xml() {
 	'		<kontakt>'+$('i_kontakt').value+'</kontakt>\n' +
 	'		<telefon>'+$('i_telefon').value+'</telefon>\n' +
 	'		<kupec>'+$('i_kupec').value+'</kupec>\n' +
+	'		<potnik>'+$('i_potnik').value+'</potnik>\n' +
 	'	</stranka>\n' +
 	'	<datum>'+$('i_datum').value+'</datum>\n' +
 	'	<material>\n'+
@@ -322,6 +329,7 @@ function changeSubject() {
 			$('i_kupec').value = subjectOption[ii]['kupec'];
 			$('i_osnovno').value = subjectOption[ii]['osnovna'];
 			$('i_opomba').value = subjectOption[ii]['opomba'];
+			$('i_potnik').value = subjectOption[ii]['potnik'];
 		}
 	}
 }
@@ -361,17 +369,22 @@ var cmu = [
         {
            dataIndex: 'stranka',
            dataType:'string',
-           width:300
+           width:250
         },
         {
             dataIndex: 'kupec',
             dataType:'string',
-            width:300
+            width:200
          },
+         {
+            dataIndex: 'potnik',
+            dataType:'string',
+            width:150
+        },
         {
            dataIndex: 'material',
            dataType:'string',
-           width:300
+           width:200
         },
         {
            dataIndex: 'kolicina',
@@ -454,10 +467,13 @@ function handleFileSelect(evt) {
     		return;
     	}
         changeSubject();
+    	$('i_kontakt').value = xmlDoc.getElementsByTagName("kontakt")[0].childNodes[0].nodeValue;
+    	$('i_telefon').value = xmlDoc.getElementsByTagName("telefon")[0].childNodes[0].nodeValue;
         $('selectMaterial').value = xmlDoc.getElementsByTagName("koda")[0].childNodes[0].nodeValue; 	
         $('selectNarocil').value = xmlDoc.getElementsByTagName("sif_upor")[0].childNodes[0].nodeValue; 	
     	$('i_datum').value = xmlDoc.getElementsByTagName("datum")[0].childNodes[0].nodeValue;
     	$('i_kolicina').value = xmlDoc.getElementsByTagName("kolicina")[0].childNodes[0].nodeValue;
+    	$('i_potnik').value = xmlDoc.getElementsByTagName("potnik")[0].childNodes[0].nodeValue;
     	$('i_opomba').value = xmlDoc.getElementsByTagName("opomba")[0].childNodes[0].nodeValue;
         
         

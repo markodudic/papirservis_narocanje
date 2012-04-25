@@ -48,6 +48,10 @@ public class Order {
 	@Size(min = 1, max = 255)
 	private String narocil;
 
+	@NotNull
+	@Size(min = 1, max = 255)
+	private String potnik;
+
 	public String getDatum() {
 		return datum;
 	}
@@ -110,6 +114,14 @@ public class Order {
 
 	public void setNarocil(String narocil) {
 		this.narocil = narocil;
+	}
+
+	public String getPotnik() {
+		return potnik;
+	}
+
+	public void setPotnik(String potnik) {
+		this.potnik = potnik;
 	}
 
 

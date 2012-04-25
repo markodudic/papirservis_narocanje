@@ -148,6 +148,7 @@ public class DispatcherController {
 			data.put("datum", order.getDatum()==null?"":order.getDatum());
 			data.put("stranka", order.getStranka()==null?"":order.getStranka());
 			data.put("kupec", order.getKupec()==null?"":order.getKupec());
+			data.put("potnik", order.getPotnik()==null?"":order.getPotnik());
 			data.put("material", order.getMaterial()==null?"":order.getMaterial());
 			data.put("kolicina", order.getKolicina()==null?"":order.getKolicina());
 			data.put("opomba", order.getOpomba()==null?"":order.getOpomba());
@@ -199,6 +200,7 @@ public class DispatcherController {
 		data.put("kont_os", subject.getKontOseba());
 		data.put("kraj", subject.getKraj());
 		data.put("kupec", subject.getKupec());
+		data.put("potnik", subject.getPotnik());
 		data.put("naslov", subject.getNaslov());
 		data.put("osnovna", subject.getOsnovna());
 		data.put("posta", subject.getPosta());

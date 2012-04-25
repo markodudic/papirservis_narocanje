@@ -211,7 +211,7 @@ fieldset input {
 }
 
 
-#searchtable #td_search #i_naslov, #i_kraj, #i_kontakt, #i_telefon, #i_kupec, #i_kolicina, #i_osnovno, #i_opomba {
+#searchtable #td_search #i_naslov, #i_kraj, #i_kontakt, #i_telefon, #i_kupec, #i_potnik, #i_kolicina, #i_osnovno, #i_opomba {
 	width: 400px;
 }
 
