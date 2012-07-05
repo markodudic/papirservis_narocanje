@@ -142,6 +142,16 @@ public class DispatcherStoredProcedureDaoImpl implements DispatcherStoredProcedu
 	    		new UsersMapper());
 	}
 
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	public Collection GetUser(String narocil) {
+	    return this.jdbcTemplate.query( 
+	    		"SELECT * " +
+	    		"FROM uporabniki " +
+				"WHERE sif_upor = ? ",
+	    		new Object[]{narocil},
+	    		new UsersMapper());
+	}
+
 	@SuppressWarnings("rawtypes")
 	private static final class UsersMapper implements RowMapper {
 
@@ -149,6 +159,7 @@ public class DispatcherStoredProcedureDaoImpl implements DispatcherStoredProcedu
 	        User user = new User();
 	        user.setId(rs.getString("sif_upor"));
 	        user.setName(rs.getString("ime_in_priimek"));
+	        user.setEmail(rs.getString("email"));
 	        
 	        return user;
 	    }
@@ -171,7 +182,7 @@ public class DispatcherStoredProcedureDaoImpl implements DispatcherStoredProcedu
 		Map kupec = GetKupec(stranka);
 		
 		return this.jdbcTemplate.update( 
-	    		"insert into dob" + dobLeto + " (st_dob, pozicija, datum, sif_str, sif_kupca, koda, kolicina, opomba, skupina, uporabnik) " +
+	    		"insert into dob_narocila (st_dob, pozicija, datum, sif_str, sif_kupca, koda, kolicina, opomba, skupina, uporabnik) " +
 	    		"values (?,?,?,?,?,?,?,?,?,?)",
 	    		new Object[]{nextId, 1, datumUTC, stranka, kupec.get("sif_kupca"), material, kolicina, opomba, kupec.get("skupina"), narocil});
 	}
@@ -183,6 +194,18 @@ public class DispatcherStoredProcedureDaoImpl implements DispatcherStoredProcedu
 			return this.jdbcTemplate.queryForInt("SELECT max(st_dob) cnt FROM `dob_bianco` where id = 'dob" + dobLeto + "'");
 	}
 	
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	public Collection GetPotnik(String sif_str) {
+	    return this.jdbcTemplate.query(
+					"select distinct uporabniki.* " +
+					"from stranke " +
+					"	left join kupci on (stranke.sif_kupca = kupci.sif_kupca) " +
+					"	left join uporabniki on (potnik = sif_upor) " +
+					"where sif_str = ?",
+		    		new Object[]{sif_str},
+		    		new UsersMapper());
+	}
+
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public Map GetKupec(String stranka) {
 			return this.jdbcTemplate.queryForMap(
@@ -203,17 +226,16 @@ public class DispatcherStoredProcedureDaoImpl implements DispatcherStoredProcedu
 		int year = toDay.get(Calendar.YEAR);
 		
 	    return this.jdbcTemplate.query( 
-	    		"select st_dob, DATE_FORMAT(dob" + year + ".datum, '%d.%m.%Y') as datum, stranka, kupci.naziv as kupec, potnik.ime_in_priimek as potnik, material, kolicina, dob" + year + ".opomba as opomba, upor.ime_in_priimek as narocil " +
-				"from dob" + year + " " +
-				"left join kupci on (dob" + year + ".sif_kupca = kupci.sif_kupca) " +
+	    		"select st_dob, DATE_FORMAT(dob_narocila.datum, '%d.%m.%Y') as datum, stranka, kupci.naziv as kupec, potnik.ime_in_priimek as potnik, material, kolicina, dob_narocila.opomba as opomba, upor.ime_in_priimek as narocil " +
+				"from dob_narocila " +
+				"left join kupci on (dob_narocila.sif_kupca = kupci.sif_kupca) " +
 				"left join (SELECT materiali.*   " +
 				"				FROM materiali, (SELECT koda, max(zacetek) datum FROM materiali group by koda ) zadnji1 " + 
 				"					WHERE materiali.koda = zadnji1.koda and   " +
-				"					      materiali.zacetek = zadnji1.datum) as m on (dob" + year + ".koda = m.koda) " +
-				"left join uporabniki as upor on (dob" + year + ".uporabnik = upor.sif_upor) " +			      
+				"					      materiali.zacetek = zadnji1.datum) as m on (dob_narocila.koda = m.koda) " +
+				"left join uporabniki as upor on (dob_narocila.uporabnik = upor.sif_upor) " +			      
 				"left join uporabniki as potnik on (kupci.potnik = potnik.sif_upor) " +			      
-				"where obdelana = 0 and " +
-				"    (((kupci.sif_kupca = ?) and (?=1)) OR (?=2)) " +
+				"where (((kupci.sif_kupca = ?) and (?=1)) OR (?=2)) " +
 				"order by " + sortString + " " + sortType,
 	    		new Object[]{sif_kupca,narocila,narocila},
 	    		new OrdersMapper());

@@ -52,6 +52,17 @@
 	<bean
 		class="org.classes.controllers.DispatcherController" id="customPageController" init-method="initialize">
 		<property name="contextPath" value="/narocanje"/>
+		<property name="smtpServer" value="smtp.gmail.com"/>
+        <property name="from" value="markodudic@gmail.com"/>
+        <property name="subject" value="Novo naročilo"/>
+        <property name="user" value="markodudic"/>
+        <property name="pass" value="tulumba"/>
+        <property name="mail_smtp_auth" value="true"/>
+        <property name="mail_smtp_port" value="465"/>
+        <property name="mail_smtp_socketFactory_port" value="465"/>
+        <property name="mail_smtp_starttls_enable" value="false"/>
+        <property name="mail_transport_protocol" value="smtp"/>
+        <property name="use_ssl" value="true"/>
 	</bean>
 
 	

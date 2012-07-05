@@ -178,11 +178,12 @@ function confirm(){
 	podatkiJSON["datum"] = $('i_datum').value;
 	podatkiJSON["kolicina"] = $('i_kolicina').value;
 	podatkiJSON["opomba"] = $('i_opomba').value;
+	podatkiJSON["form_html"] = getHtmlForm();
 	var j = {};
 	j.confirmData = JSON.encode(podatkiJSON);		
 	
 	new Request({
-		method: 'get', 
+		method: 'post', 
 		url: 'confirm',
 		data: j,
 		'onSuccess':function(result){
@@ -192,7 +193,7 @@ function confirm(){
 }
 
 
-function tiskaj() {
+function getHtmlForm() {
 	
 	var stranka = "";
 	if ($('selectStranka').selectedIndex != 0) 
@@ -259,9 +260,13 @@ function tiskaj() {
 		'<td align="left">'+narocil+'</td>' +
 	'</tr>';
 	print_html += '</table>';
-    
+	
+	return print_html;
+}
+
+function tiskaj() {
 	$('form_title').value=MooTools.lang.get('msg','welcome.title');
-	$('form_html').value=print_html;
+	$('form_html').value=getHtmlForm();
 	$('listForms').action = Hydra.pageContext+"/pdf";
     $('listForms').submit();	
 }

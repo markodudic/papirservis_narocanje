@@ -31,6 +31,10 @@ public class User {
 
 	@NotNull
 	@Size(min = 1, max = 255)
+	private String email;
+
+	@NotNull
+	@Size(min = 1, max = 255)
 	private String status;
 
 	@Null
@@ -100,6 +104,15 @@ public class User {
 	public void setNarocila(String narocila) {
 		this.narocila = narocila;
 	}
+
+	public String getEmail() {
+		return email;
+	}
+
+	public void setEmail(String email) {
+		this.email = email;
+	}
+	
 	
 
 }
