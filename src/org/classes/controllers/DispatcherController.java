@@ -1,25 +1,25 @@
 package org.classes.controllers;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.StringReader;
-import java.util.HashMap;
+import java.util.Date;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import java.util.Properties;
 import java.util.zip.GZIPOutputStream;
 
+import javax.mail.Message;
+import javax.mail.PasswordAuthentication;
+import javax.mail.Session;
+import javax.mail.Transport;
+import javax.mail.internet.InternetAddress;
+import javax.mail.internet.MimeMessage;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
 
+import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.classes.login.Scrambler;
@@ -39,11 +39,6 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.view.RedirectView;
-import org.w3c.dom.Document;
-import org.w3c.tidy.Tidy;
-import org.xhtmlrenderer.pdf.ITextRenderer;
-
-import com.lowagie.text.pdf.BaseFont;
 
 import database.dao.interfaces.DispatcherStoredProcedureDao;
 
@@ -58,7 +53,20 @@ public class DispatcherController {
 	//private Validator customPageValidator;
 	private String contextPath = "";
 
+    private static String smtpServer = "";
+    private static String from = "";
+    private static String subject = "";
+    private static String user = "";
+    private static String pass = "";
 
+    private static String mail_smtp_auth = "";
+    private static String mail_smtp_port = "";
+    private static String mail_smtp_socketFactory_port = "";
+    private static String mail_smtp_starttls_enable = "";
+    private static String mail_transport_protocol = "";
+    private static String use_ssl = "";
+    
+    
 	@Autowired
 	DispatcherStoredProcedureDao dispatcherStoredProcedure;
 
@@ -341,7 +349,7 @@ public class DispatcherController {
 		session.setAttribute("status", 1);
 		return null;
 	}
-	@RequestMapping(value="/confirm", method=RequestMethod.GET)
+	@RequestMapping(value="/confirm", method=RequestMethod.POST)
 	public RedirectView confirm(@RequestParam String confirmData, 
 								HttpServletRequest request,
 								HttpServletResponse response) throws Exception {
@@ -351,12 +359,86 @@ public class DispatcherController {
 		JSONObject jdata = (JSONObject)new JSONParser().parse(new StringReader(confirmData));
 		dispatcherStoredProcedure.AddOrder(jdata);
 		
+		//posljem sms potniku in narocniku
+		List potniki = (List) dispatcherStoredProcedure.GetPotnik((String) jdata.get("stranka"));
+		List narocila = (List) dispatcherStoredProcedure.GetUser((String) jdata.get("narocil"));
+		
+		String receiver=null;
+		if (potniki.size()==1) {
+			User potnik = (User) potniki.get(0);
+			if (potnik.getEmail()!=null)
+				receiver = potnik.getEmail();
+		}
+		if (narocila.size()==1) {
+			User narocil = (User) narocila.get(0);
+			if (narocil.getEmail()!=null) {
+				if (receiver!=null)
+					receiver += ","+narocil.getEmail();
+				else
+					receiver = narocil.getEmail();
+			}
+		}
+		if (receiver!=null){
+				//poskljem sms
+			sendMail(receiver, (String) jdata.get("form_html"));
+		}
+		
+		
 		RedirectView rv = new RedirectView();
 		rv.setUrl(contextPath+"/orders");
 		return rv;	
 	}	
 	 
 
+	public static void sendMail(String to, String body)
+    {
+        log.debug("send mail:" + to);
+        log.debug("send mail:" + body);
+        try
+        {
+          Properties props = System.getProperties();
+          props.setProperty("mail.transport.protocol", mail_transport_protocol);
+          props.put("mail.smtp.host", smtpServer);
+          props.put("mail.smtp.auth", mail_smtp_auth);
+          props.put("mail.smtp.port", mail_smtp_port);
+          props.put("mail.smtp.starttls.enable",mail_smtp_starttls_enable);
+
+          if (use_ssl.equals("true")) {
+              props.put("mail.smtp.socketFactory.port", mail_smtp_socketFactory_port);
+              props.put("mail.smtp.socketFactory.class", "javax.net.ssl.SSLSocketFactory");
+              props.put("mail.smtp.socketFactory.fallback", "false");
+          }
+          props.setProperty("mail.smtp.quitwait", "false");
+
+          Session session = Session.getDefaultInstance(props, new javax.mail.Authenticator() 
+          {
+            protected PasswordAuthentication getPasswordAuthentication()
+            { return new PasswordAuthentication(user,pass);    }
+          });
+            
+          //Session session = Session.getDefaultInstance(props, null);
+          Message msg = new MimeMessage(session);
+          msg.setFrom(new InternetAddress(from));
+          if (to.indexOf(',') > 0) 
+                msg.setRecipients(Message.RecipientType.TO, InternetAddress.parse(to));
+          else
+              msg.setRecipient(Message.RecipientType.TO, new InternetAddress(to));
+
+          msg.setSubject(subject);
+          //msg.setText(body);
+          msg.setSentDate(new Date());
+          
+          msg.setContent(body, "text/html; charset=UTF-8");
+          
+          Transport.send(msg);
+          System.out.println("Message sent OK.");
+        }
+        catch (Exception ex)
+        {
+          ex.printStackTrace();
+        }
+    }
+	
 	
 	@RequestMapping(value="/pdf", method=RequestMethod.POST)
 	public void pdf(@RequestParam("form_html") String html,
@@ -468,5 +550,128 @@ public class DispatcherController {
 	    response.setHeader("Cache-Control", "no-cache,no-store,max-age=0");
 	    response.setDateHeader("Expires", 1);  
 	}
+
+
+	public Log getLog() {
+		return log;
+	}
+
+
+	public void setLog(Log log) {
+		DispatcherController.log = log;
+	}
+
+
+	public String getSmtpServer() {
+		return smtpServer;
+	}
+
+
+	public void setSmtpServer(String smtpServer) {
+		DispatcherController.smtpServer = smtpServer;
+	}
+
+
+	public String getFrom() {
+		return from;
+	}
+
+
+	public void setFrom(String from) {
+		DispatcherController.from = from;
+	}
+
+
+	public String getSubject() {
+		return subject;
+	}
+
+
+	public void setSubject(String subject) {
+		DispatcherController.subject = subject;
+	}
+
+
+	public String getUser() {
+		return user;
+	}
+
+
+	public void setUser(String user) {
+		DispatcherController.user = user;
+	}
+
+
+	public String getPass() {
+		return pass;
+	}
+
+
+	public void setPass(String pass) {
+		DispatcherController.pass = pass;
+	}
+
+
+	public String getMail_smtp_auth() {
+		return mail_smtp_auth;
+	}
+
+
+	public void setMail_smtp_auth(String mail_smtp_auth) {
+		DispatcherController.mail_smtp_auth = mail_smtp_auth;
+	}
+
+
+	public String getMail_smtp_port() {
+		return mail_smtp_port;
+	}
+
+
+	public void setMail_smtp_port(String mail_smtp_port) {
+		DispatcherController.mail_smtp_port = mail_smtp_port;
+	}
+
+
+	public String getMail_smtp_socketFactory_port() {
+		return mail_smtp_socketFactory_port;
+	}
+
+
+	public void setMail_smtp_socketFactory_port(
+			String mail_smtp_socketFactory_port) {
+		DispatcherController.mail_smtp_socketFactory_port = mail_smtp_socketFactory_port;
+	}
+
+
+	public String getMail_smtp_starttls_enable() {
+		return mail_smtp_starttls_enable;
+	}
+
+
+	public void setMail_smtp_starttls_enable(String mail_smtp_starttls_enable) {
+		DispatcherController.mail_smtp_starttls_enable = mail_smtp_starttls_enable;
+	}
+
+
+	public String getMail_transport_protocol() {
+		return mail_transport_protocol;
+	}
+
+
+	public void setMail_transport_protocol(String mail_transport_protocol) {
+		DispatcherController.mail_transport_protocol = mail_transport_protocol;
+	}
+
+
+	public String getUse_ssl() {
+		return use_ssl;
+	}
+
+
+	public void setUse_ssl(String use_ssl) {
+		DispatcherController.use_ssl = use_ssl;
+	}
+	
+	
 	
 }

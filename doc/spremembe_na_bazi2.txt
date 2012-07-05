@@ -1,0 +1,55 @@
+//dodajanje flaga za krozno voznjo
+ALTER TABLE `dob` ADD COLUMN `krozna` INT(1) NULL DEFAULT '0' AFTER `error`;
+ALTER TABLE `dob2009` ADD COLUMN `krozna` INT(1) NULL DEFAULT '0' AFTER `error`;
+ALTER TABLE `dob2010` ADD COLUMN `krozna` INT(1) NULL DEFAULT '0' AFTER `error`;
+ALTER TABLE `dob2011` ADD COLUMN `krozna` INT(1) NULL DEFAULT '0' AFTER `error`;
+ALTER TABLE `dob2012` ADD COLUMN `krozna` INT(1) NULL DEFAULT '0' AFTER `error`;
+ALTER TABLE `dob2013` ADD COLUMN `krozna` INT(1) NULL DEFAULT '0' AFTER `error`;
+
+
+ALTER TABLE `uporabniki`
+	ADD COLUMN `email` VARCHAR(255) NULL DEFAULT NULL AFTER `geslo`,
+	ADD COLUMN `narocila_potrjevanje` TINYINT(1) UNSIGNED NULL DEFAULT '0' COMMENT '0 - false, 1 - true' AFTER `narocila`;
+
+	
+CREATE TABLE `dob_narocila` (
+	`id` INT(11) NOT NULL AUTO_INCREMENT,
+	`st_dob` INT(11) NOT NULL DEFAULT '0',
+	`pozicija` INT(11) NOT NULL DEFAULT '0',
+	`datum` TIMESTAMP NULL DEFAULT NULL,
+	`sif_str` INT(11) NULL DEFAULT NULL,
+	`stranka` VARCHAR(255) NULL DEFAULT NULL,
+	`sif_kupca` VARCHAR(255) NULL DEFAULT NULL,
+	`sif_sof` VARCHAR(255) NULL DEFAULT NULL,
+	`sofer` VARCHAR(255) NULL DEFAULT NULL,
+	`sif_kam` VARCHAR(255) NULL DEFAULT NULL,
+	`kamion` VARCHAR(255) NULL DEFAULT NULL,
+	`koda` VARCHAR(255) NULL DEFAULT NULL,
+	`EWC` VARCHAR(255) NULL DEFAULT NULL,
+	`kolicina` INT(11) NULL DEFAULT '0',
+	`skupina` INT(11) NULL DEFAULT NULL,
+	`skupina_text` VARCHAR(255) NULL DEFAULT NULL,
+	`opomba` VARCHAR(255) NULL DEFAULT NULL,
+	`zacetek` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+	`uporabnik` INT(11) NULL DEFAULT NULL,
+	PRIMARY KEY (`id`),
+	UNIQUE INDEX `st_dob` (`st_dob`, `pozicija`, `zacetek`),
+	INDEX `dob_sofer_fk` (`sif_sof`),
+	INDEX `dob_kamion_fk` (`sif_kam`),
+	INDEX `dob_skupina_fk` (`skupina`),
+	INDEX `dob_stranke_fk` (`sif_str`),
+	INDEX `dob_kupci_fk` (`sif_kupca`),
+	INDEX `dob_upor_fk` (`uporabnik`),
+	INDEX `dob_materiali_fk` (`koda`),
+	INDEX `datum_indx` (`datum`) USING BTREE,
+	INDEX `dob_zacetek_indx` (`zacetek`) USING BTREE,
+	INDEX `dob_okolje_fk` (`EWC`),
+	CONSTRAINT `dob_narocila_ibfk_1` FOREIGN KEY (`sif_kupca`) REFERENCES `kupci` (`sif_kupca`) ON UPDATE NO ACTION ON DELETE NO ACTION,
+	CONSTRAINT `dob_narocila_ibfk_2` FOREIGN KEY (`EWC`) REFERENCES `okolje` (`koda`) ON UPDATE NO ACTION ON DELETE NO ACTION,
+	CONSTRAINT `dob_narocila_ibfk_3` FOREIGN KEY (`skupina`) REFERENCES `skup` (`skupina`) ON UPDATE NO ACTION ON DELETE NO ACTION,
+	CONSTRAINT `dob_narocila_ibfk_4` FOREIGN KEY (`sif_sof`) REFERENCES `sofer` (`sif_sof`) ON UPDATE NO ACTION ON DELETE NO ACTION,
+	CONSTRAINT `dob_narocila_ibfk_5` FOREIGN KEY (`uporabnik`) REFERENCES `uporabniki` (`sif_upor`) ON UPDATE NO ACTION ON DELETE NO ACTION
+)
+COLLATE='utf8_general_ci'
+ENGINE=InnoDB
+AUTO_INCREMENT=1;
