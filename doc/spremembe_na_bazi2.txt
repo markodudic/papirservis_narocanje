@@ -6,6 +6,13 @@ ALTER TABLE `dob2011` ADD COLUMN `krozna` INT(1) NULL DEFAULT '0' AFTER `error`;
 ALTER TABLE `dob2012` ADD COLUMN `krozna` INT(1) NULL DEFAULT '0' AFTER `error`;
 ALTER TABLE `dob2013` ADD COLUMN `krozna` INT(1) NULL DEFAULT '0' AFTER `error`;
 
+ALTER TABLE `dob` ADD COLUMN `aplikacija` INT(1) NULL DEFAULT '0' COMMENT '0 - logistika, 1 - narocanje' AFTER `krozna`;
+ALTER TABLE `dob2009` ADD COLUMN `aplikacija` INT(1) NULL DEFAULT '0' COMMENT '0 - logistika, 1 - narocanje' AFTER `krozna`;
+ALTER TABLE `dob2010` ADD COLUMN `aplikacija` INT(1) NULL DEFAULT '0' COMMENT '0 - logistika, 1 - narocanje' AFTER `krozna`;
+ALTER TABLE `dob2011` ADD COLUMN `aplikacija` INT(1) NULL DEFAULT '0' COMMENT '0 - logistika, 1 - narocanje' AFTER `krozna`;
+ALTER TABLE `dob2012` ADD COLUMN `aplikacija` INT(1) NULL DEFAULT '0' COMMENT '0 - logistika, 1 - narocanje' AFTER `krozna`;
+ALTER TABLE `dob2013` ADD COLUMN `aplikacija` INT(1) NULL DEFAULT '0' COMMENT '0 - logistika, 1 - narocanje' AFTER `krozna`;
+
 
 ALTER TABLE `uporabniki`
 	ADD COLUMN `email` VARCHAR(255) NULL DEFAULT NULL AFTER `geslo`,
@@ -53,3 +60,23 @@ CREATE TABLE `dob_narocila` (
 COLLATE='utf8_general_ci'
 ENGINE=InnoDB
 AUTO_INCREMENT=1;
+
+
+CREATE TRIGGER `dob_narocila_insert` BEFORE INSERT ON `dob_narocila` FOR EACH ROW BEGIN
+set NEW.stranka = (select naziv from stranke where id = (select max(id) from stranke where sif_str = NEW.sif_str));
+set NEW.skupina_text = (select tekst from skup where skupina = NEW.skupina);
+set NEW.sofer = (select sofer from sofer where sif_sof = NEW.sif_sof);
+set NEW.kamion = (select kamion from kamion where id = (select max(id) from kamion where sif_kam = NEW.sif_kam));
+set NEW.zacetek = current_timestamp();
+END;
+
+
+
+CREATE TRIGGER `dob_narocila_update` BEFORE UPDATE ON `dob_narocila` FOR EACH ROW BEGIN
+set NEW.stranka = (select naziv from stranke where id = (select max(id) from stranke where sif_str = NEW.sif_str));
+set NEW.skupina_text = (select tekst from skup where skupina = NEW.skupina);
+set NEW.sofer = (select sofer from sofer where sif_sof = NEW.sif_sof);
+set NEW.kamion = (select kamion from kamion where id = (select max(id) from kamion where sif_kam = NEW.sif_kam));
+set NEW.zacetek = current_timestamp();
+END;
+
