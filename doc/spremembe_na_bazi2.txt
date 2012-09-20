@@ -80,3 +80,18 @@ set NEW.kamion = (select kamion from kamion where id = (select max(id) from kami
 set NEW.zacetek = current_timestamp();
 END;
 
+CREATE TABLE `sofer_sledenje` (
+	`sif_sof` VARCHAR(255) NULL DEFAULT NULL COLLATE 'utf8_general_ci',
+	`sif_kam` VARCHAR(255) NOT NULL COLLATE 'utf8_general_ci',
+	`datum` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+	`km_sled` INT(11) NULL DEFAULT NULL,
+	`ur_sled` TIME NULL DEFAULT NULL,
+	INDEX `idx` (`sif_sof`, `sif_kam`, `datum`),
+	INDEX `sofer_sledenje_kamion_fk` (`sif_kam`),
+	CONSTRAINT `sofer_sledenje_kamion_fk` FOREIGN KEY (`sif_kam`) REFERENCES `kamion` (`sif_kam`),
+	CONSTRAINT `sofer_sledenje_sofer_fk` FOREIGN KEY (`sif_sof`) REFERENCES `sofer` (`sif_sof`)
+)
+COLLATE='utf8_slovenian_ci'
+ENGINE=InnoDB;
+
+
