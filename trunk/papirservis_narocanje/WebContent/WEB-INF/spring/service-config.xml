@@ -28,7 +28,7 @@
   	<!-- ========================= DATA SOURCE ========================= -->  
 	<bean id="dataSource" class="org.springframework.jdbc.datasource.DriverManagerDataSource">
 		<property name="driverClassName"><value>org.gjt.mm.mysql.Driver</value></property>
-		<property name="url"><value>jdbc:mysql://192.168.1.107:3306/papirservis</value></property>
+		<property name="url"><value>jdbc:mysql://localhost:3306/papirservis</value></property>
 		<property name="username"><value>papirservis</value></property>
 		<property name="password"><value>papirservis</value></property>
 	</bean>       
@@ -53,16 +53,26 @@
 		class="org.classes.controllers.DispatcherController" id="customPageController" init-method="initialize">
 		<property name="contextPath" value="/narocanje"/>
 		<property name="smtpServer" value="smtp.gmail.com"/>
-        <property name="from" value="markodudic@gmail.com"/>
-        <property name="subject" value="Novo naročilo"/>
-        <property name="user" value="markodudic"/>
-        <property name="pass" value="tulumba"/>
-        <property name="mail_smtp_auth" value="true"/>
-        <property name="mail_smtp_port" value="465"/>
-        <property name="mail_smtp_socketFactory_port" value="465"/>
-        <property name="mail_smtp_starttls_enable" value="false"/>
-        <property name="mail_transport_protocol" value="smtp"/>
-        <property name="use_ssl" value="true"/>
+      <property name="subject" value="Novo naročilo"/>
+      <property name="user" value="markodudic"/>
+      <property name="pass" value="tulumba"/>
+      <property name="mail_smtp_auth" value="true"/>
+      <property name="mail_smtp_port" value="465"/>
+      <property name="mail_smtp_socketFactory_port" value="465"/>
+      <property name="mail_smtp_starttls_enable" value="false"/>
+      <property name="mail_transport_protocol" value="smtp"/>
+      <property name="use_ssl" value="true"/>
+      
+		<!-- property name="smtpServer" value="xenon.salomon.si"/>
+      <property name="subject" value="Papir servis: Novo naročilo v sistemu logistika"/>
+      <property name="user" value="odvozi@papir-servis.si"/>
+      <property name="pass" value="apollo11"/>
+      <property name="mail_smtp_auth" value="true"/>
+      <property name="mail_smtp_port" value="325"/>
+      <property name="mail_smtp_socketFactory_port" value="325"/>
+      <property name="mail_smtp_starttls_enable" value="false"/>
+      <property name="mail_transport_protocol" value="smtp"/>
+      <property name="use_ssl" value="false"/-->
 	</bean>
 
 	

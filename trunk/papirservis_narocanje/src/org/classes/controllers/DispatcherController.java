@@ -54,7 +54,6 @@ public class DispatcherController {
 	private String contextPath = "";
 
     private static String smtpServer = "";
-    private static String from = "";
     private static String subject = "";
     private static String user = "";
     private static String pass = "";
@@ -320,6 +319,7 @@ public class DispatcherController {
 		session.setAttribute("status", user.getStatus());
 		session.setAttribute("sif_kupca", user.getSif_kupca());
 		session.setAttribute("narocila", user.getNarocila());
+		session.setAttribute("email", user.getEmail());
 		
 		JSONArray dataArray = new JSONArray();
 		dataArray.add(userJSON(user));
@@ -378,9 +378,13 @@ public class DispatcherController {
 					receiver = narocil.getEmail();
 			}
 		}
-		if (receiver!=null){
-				//poskljem sms
-			sendMail(receiver, (String) jdata.get("form_html"));
+		
+		HttpSession session = request.getSession();
+		String sender = (String) session.getAttribute("email");
+
+		if ((receiver!=null) && (sender!=null)) {
+				//pokljem sms
+			sendMail(receiver, (String) jdata.get("form_html"), sender);
 		}
 		
 		
@@ -390,10 +394,11 @@ public class DispatcherController {
 	}	
 	 
 
-	public static void sendMail(String to, String body)
+	public static void sendMail(String to, String body, String sender)
     {
         log.debug("send mail:" + to);
         log.debug("send mail:" + body);
+        log.debug("send mail:" + sender);
         try
         {
           Properties props = System.getProperties();
@@ -418,7 +423,7 @@ public class DispatcherController {
             
           //Session session = Session.getDefaultInstance(props, null);
           Message msg = new MimeMessage(session);
-          msg.setFrom(new InternetAddress(from));
+          msg.setFrom(new InternetAddress(sender));
           if (to.indexOf(',') > 0) 
                 msg.setRecipients(Message.RecipientType.TO, InternetAddress.parse(to));
           else
@@ -569,16 +574,6 @@ public class DispatcherController {
 
 	public void setSmtpServer(String smtpServer) {
 		DispatcherController.smtpServer = smtpServer;
-	}
-
-
-	public String getFrom() {
-		return from;
-	}
-
-
-	public void setFrom(String from) {
-		DispatcherController.from = from;
 	}
 
 
