@@ -45,6 +45,7 @@ public class DispatcherStoredProcedureDaoImpl implements DispatcherStoredProcedu
 				        	user.setStatus("0");
 				        	user.setSif_kupca(rs.getString("sif_kupca"));
 				        	user.setNarocila(rs.getString("narocila"));
+				        	user.setEmail(rs.getString("email"));
 				            return user;
 				        }
 				    });
